@@ -1,0 +1,103 @@
+<?xml version="1.0" ?>
+<robot name="amr" xmlns:xacro="http://www.ros.org/wiki/xacro" >
+
+<xacro:property name="body_color" value="Gazebo/Silver" />
+
+<ros2_control name="SwerveControl1" type="system">
+    <hardware>
+        <plugin>mock_components/GenericSystem</plugin>
+    </hardware>
+
+    <joint name="joint_chassis_to_steering_front">
+        <command_interface name="position">
+            <param name="min">-100</param>
+            <param name="max">100</param>
+        </command_interface>
+        
+        <state_interface name="position"/>
+        <state_interface name="velocity"/>
+    </joint>
+
+    <!-- <joint name="joint_chassis_to_steering_left_rear">
+        <command_interface name="position">
+            <param name="min">-100</param>
+            <param name="max">100</param>
+        </command_interface>
+        
+        <state_interface name="position">
+        <param name="initial_value">0.0</param> 
+        </state_interface>
+    </joint> -->
+
+    <joint name="joint_chassis_to_steering_left_rear">
+        <command_interface name="position">
+            <param name="min">-100</param>
+            <param name="max">100</param>
+        </command_interface>
+        
+        <state_interface name="position"/>
+        <state_interface name="velocity"/>
+    </joint>
+
+    <joint name="joint_chassis_to_steering_right_rear">
+        <command_interface name="position">
+            <param name="min">-100</param>
+            <param name="max">100</param>
+        </command_interface>
+        
+        <state_interface name="position"/>
+        <state_interface name="velocity"/>
+    </joint>
+
+
+    <joint name="joint_steering_to_wheel_front">
+        <command_interface name="velocity">
+            <param name="min">-2.5</param>
+            <param name="max">2.5</param>
+        </command_interface>
+
+        <state_interface name="position"/>
+        <state_interface name="velocity"/>
+    </joint>
+
+    <!-- <joint name="joint_steering_to_wheel_left_rear">
+        <command_interface name="velocity">
+            <param name="min">-2.5</param>
+            <param name="max">2.5</param>
+        </command_interface>
+        <state_interface name="velocity">
+        <param name="initial_value">0.0</param> 
+        </state_interface>
+    </joint> -->
+
+    <joint name="joint_steering_to_wheel_left_rear">
+        <command_interface name="velocity">
+            <param name="min">-2.5</param>
+            <param name="max">2.5</param>
+        </command_interface>
+
+        <state_interface name="position"/>
+        <state_interface name="velocity"/>
+    </joint>
+
+    <joint name="joint_steering_to_wheel_right_rear">
+        <command_interface name="velocity">
+            <param name="min">-2.5</param>
+            <param name="max">2.5</param>
+        </command_interface>
+
+        <state_interface name="position"/>
+        <state_interface name="velocity"/>
+    </joint>
+
+
+</ros2_control>
+
+<gazebo>
+    <plugin name="gazebo_ros2_control" filename="libign_ros2_control-system.so">
+    <!-- <plugin filename="ign_ros2_control-system.so" name="ign_ros2_control/IgnitionSystem"> -->
+        <parameters>$(find swerve_drive_description)/config/swerve_controller.yaml</parameters>
+    </plugin>
+    
+</gazebo>
+</robot>

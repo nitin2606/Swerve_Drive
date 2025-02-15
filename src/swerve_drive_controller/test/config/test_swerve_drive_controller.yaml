@@ -1,0 +1,18 @@
+test_swerve_drive_controller:
+  ros__parameters:
+    front_wheel_joint: "front_wheel_joint"
+    rear_left_wheel_joint: "rear_left_wheel_joint"
+    rear_right_wheel_joint: "rear_right_wheel_joint"
+
+    front_axle_joint: "front_axle_joint"
+    rear_left_axle_joint: "rear_left_axle_joint"
+    rear_right_axle_joint: "rear_right_axle_joint"
+
+    chassis_length: 0.85
+    chassis_width: 0.75
+    wheel_radius: 0.0775
+
+    cmd_vel_timeout: 10.0
+    use_stamped_vel: false
+    cmd_vel_topic: "/cmd_vel"
+

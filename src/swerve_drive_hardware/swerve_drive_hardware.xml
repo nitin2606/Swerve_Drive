@@ -1,0 +1,7 @@
+<library path="swerve_drive_hardware">
+  <class name="swerve_drive_hardware/SwerveDriveHardware"
+         type="swerve_drive_hardware::SwerveDriveHardware"
+         base_class_type="hardware_interface::SystemInterface">
+    <description>Hardware interface for swerve drive robot</description>
+  </class>
+</library>

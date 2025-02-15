@@ -1,0 +1,230 @@
+<?xml version="1.0" ?>
+<robot name="swerve" xmlns:xacro="http://www.ros.org/wiki/xacro">
+
+    <!-- CONSTANTS -->
+    <!-- Math -->
+    <xacro:property name="PI" value="3.1415926535897931"/>
+    <xacro:arg name="namespace" default=""/>
+    <!-- ARGUMENTS -->
+    <xacro:arg name="is_simulation" default="false" />
+    <xacro:arg name="use_fake_hardware" default="false" />
+    <xacro:arg name="fake_sensor_commands" default="false" />
+    <xacro:arg name="chassis_version" default="v1" />
+
+    <!-- Chassis dimensions -->
+    <xacro:property name="chassis_mass" value="1.0" /> <!-- arbitrary value for base mass -->
+    <xacro:property name="chassis_length" value="0.35" />
+    <xacro:property name="chassis_width" value="0.2" />
+    <xacro:property name="chassis_height" value="0.06" />
+
+    <!-- Suspension dimensions -->
+    <xacro:property name="wheel_offset" value="0.01" />
+    <xacro:property name="steering_mass" value="0.2" />
+    <xacro:property name="steering_radius" value="0.05" />
+    <xacro:property name="steering_thickness" value="0.01" />
+
+    <!-- Wheel dimensions -->
+    <xacro:property name="wheel_mass" value="0.2" />
+    <xacro:property name="wheel_radius" value="0.04" />
+    <xacro:property name="wheel_width" value="0.05" />
+
+    <!-- -->
+    <xacro:property name="front_x_reflect" value="1" />
+    <xacro:property name="rear_x_reflect" value="-1" />
+
+    <xacro:property name="left_y_reflect" value="1" />
+    <xacro:property name="right_y_reflect" value="-1" />
+
+    <!-- INCLUDES -->
+
+    <xacro:arg name="hw_interface_plugin" default="swerve_drive_hardware/SwerveDriveHardware"/> 
+
+    <xacro:include filename="$(find swerve_drive_description)/urdf_new/materials.xacro" />
+    <xacro:include filename="$(find swerve_drive_description)/urdf_new/macros.xacro" />
+    <xacro:include filename="$(find swerve_drive_description)/urdf_new/control.xacro"/>
+
+    <xacro:if value="$(arg is_simulation)">
+    <xacro:include filename="$(find swerve_drive_description)/urdf_new/gazebo.xacro" />
+    </xacro:if>
+
+    <!-- MODEL -->
+
+  
+    <link name="base_footprint">
+    </link>
+
+    <joint name="joint_base_to_footprint" type="fixed">
+        <origin rpy="0 0 0" xyz="0 0 ${wheel_radius + 0.5 * chassis_height}"/>
+         <!-- <origin rpy="0 0 0" xyz="0 0 0"/> -->
+        <parent link="base_footprint"/>
+        <child link="base_link"/>
+    </joint>
+
+    <link name="base_link">
+    </link>
+
+     <joint name="chassis_joint" type="fixed">
+        <origin rpy="0 0 0" xyz="0.0 0 0.0"/>
+        <parent link="base_link"/>
+        <child link="chassis_link"/>
+    </joint>
+
+
+
+    <link name="chassis_link">
+        <inertial>
+            <origin rpy="0 0 0" xyz="0 0 ${wheel_radius + 0.5 * chassis_height}"/>
+            <mass value="${chassis_mass}"/>
+            <inertia
+                ixx="${chassis_mass / 12.0 * (chassis_width * chassis_width + chassis_height * chassis_height)}"
+                ixy="0"
+                ixz="0"
+                iyy="${chassis_mass / 12.0 * (chassis_length * chassis_length + chassis_height * chassis_height)}"
+                iyz="0"
+                izz="${chassis_mass / 12.0 * (chassis_length * chassis_length + chassis_width * chassis_width)}"/>
+        </inertial>
+
+        <visual>
+            <origin rpy="0 0 0" xyz="0 0 0.0"/>
+            <geometry>
+                <box size="${chassis_length} ${chassis_width} ${chassis_height}" />
+            </geometry>
+            <material name="orange"/>
+        </visual>
+
+        <collision>
+            <origin rpy="0 0 0" xyz="0 0 0.0"/>
+            <geometry>
+                <box size="${chassis_length} ${chassis_width} ${chassis_height}" />
+            </geometry>
+        </collision>
+    </link>
+
+
+     
+    <!--
+        Left front wheel assembly
+    -->
+    <xacro:drive_module_assembly
+        
+        name="left_front"
+        parent_link="chassis_link"
+        chassis_length="${chassis_length}"
+        chassis_width="${chassis_width}"
+        chassis_height="${chassis_height}"
+        wheel_mass="${wheel_mass}"
+        wheel_radius="${wheel_radius}"
+        wheel_width="${wheel_width}"
+        steering_mass="${steering_mass}"
+        steering_radius="${steering_radius}"
+        steering_thickness="${steering_thickness}"
+        offset="${wheel_offset}"
+        x_reflect="${front_x_reflect}"
+        y_reflect="${left_y_reflect}" />
+
+    <!--
+        Left rear wheel assembly
+    -->
+    <xacro:drive_module_assembly
+       
+        name="left_rear"
+        parent_link="chassis_link"
+        chassis_length="${chassis_length}"
+        chassis_width="${chassis_width}"
+        chassis_height="${chassis_height}"
+        wheel_mass="${wheel_mass}"
+        wheel_radius="${wheel_radius}"
+        wheel_width="${wheel_width}"
+        steering_mass="${steering_mass}"
+        steering_radius="${steering_radius}"
+        steering_thickness="${steering_thickness}"
+        offset="${wheel_offset}"
+        x_reflect="${rear_x_reflect}"
+        y_reflect="${left_y_reflect}" />
+
+    <!--
+        Right rear wheel assembly
+    -->
+    <xacro:drive_module_assembly
+        
+        name="right_rear"
+        parent_link="chassis_link"
+        chassis_length="${chassis_length}"
+        chassis_width="${chassis_width}"
+        chassis_height="${chassis_height}"
+        wheel_mass="${wheel_mass}"
+        wheel_radius="${wheel_radius}"
+        wheel_width="${wheel_width}"
+        steering_mass="${steering_mass}"
+        steering_radius="${steering_radius}"
+        steering_thickness="${steering_thickness}"
+        offset="${wheel_offset}"
+        x_reflect="${rear_x_reflect}"
+        y_reflect="${right_y_reflect}" />
+
+    <!--
+        Right front wheel assembly
+    -->
+    <xacro:drive_module_assembly
+        
+        name="right_front"
+        parent_link="chassis_link"
+        chassis_length="${chassis_length}"
+        chassis_width="${chassis_width}"
+        chassis_height="${chassis_height}"
+        wheel_mass="${wheel_mass}"
+        wheel_radius="${wheel_radius}"
+        wheel_width="${wheel_width}"
+        steering_mass="${steering_mass}"
+        steering_radius="${steering_radius}"
+        steering_thickness="${steering_thickness}"
+        offset="${wheel_offset}"
+        x_reflect="${front_x_reflect}"
+        y_reflect="${right_y_reflect}" />
+
+
+
+    <!-- <ros2_control name="SwerveControl2" type="system">
+        <xacro:if value="$(arg is_simulation)">
+            <hardware>
+                <plugin>ign_ros2_control/IgnitionSystem</plugin>
+                <plugin>swerve_drive_hardware/SwerveDriveHardware</plugin>
+            </hardware>
+        </xacro:if>
+        <xacro:unless value="$(arg is_simulation)">
+            <xacro:if value="$(arg use_fake_hardware)">
+                <hardware>
+                    <plugin>mock_components/GenericSystem</plugin>
+                </hardware>
+            </xacro:if>
+            <xacro:unless value="$(arg use_fake_hardware)">
+                USE REAL HARDWARE HERE
+                <hardware>
+                </hardware>
+            </xacro:unless>
+        </xacro:unless>
+        <hardware>
+            <plugin>ign_ros2_control/IgnitionSystem</plugin>
+            <plugin>swerve_drive_hardware/SwerveDriveHardware</plugin>
+        </hardware>
+        <xacro:steering_module_controller name="left_front" />
+        <xacro:steering_module_controller name="left_rear" />
+        <xacro:steering_module_controller name="right_rear" />
+        <xacro:steering_module_controller name="right_front" />
+    </ros2_control> -->
+
+     <!-- Sensors -->
+
+    <!-- IMU -->
+    <!-- <xacro:sensor_imu name="imu_center" parent_link="chassis_link">
+        <origin rpy="0 0 0" xyz="0.0 0.0 0.0"/>
+    </xacro:sensor_imu> -->
+
+    <!-- LIDAR -->
+    <!-- <xacro:sensor_lidar
+        name="rplidar_front"
+        parent_link="chassis_link"
+        chassis_top_relative_height="${0.5 * chassis_height}" /> -->
+
+    <xacro:swerve_drive_control plugin="$(arg hw_interface_plugin)"/>
+</robot>
