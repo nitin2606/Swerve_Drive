@@ -17,6 +17,12 @@ find_package(controller_interface REQUIRED)
 find_package(pluginlib REQUIRED)
 find_package(rclcpp_lifecycle REQUIRED)
 find_package(realtime_tools REQUIRED)
+find_package(generate_parameter_library REQUIRED)
+
+generate_parameter_library(swerve_drive_controller_parameters
+  src/swerve_drive_controller_parameter.yaml
+  include/swerve_drive_controller/custom_validators.hpp
+)
 
 pluginlib_export_plugin_description_file(controller_interface swerve_drive_plugin.xml)
 
@@ -49,6 +55,13 @@ install(TARGETS swerve_drive_controller
   LIBRARY DESTINATION lib
   ARCHIVE DESTINATION lib
   RUNTIME DESTINATION bin
+)
+
+install(TARGETS swerve_drive_controller_parameters
+  EXPORT export_swerve_drive_controller
+  RUNTIME DESTINATION bin
+  ARCHIVE DESTINATION lib
+  LIBRARY DESTINATION lib
 )
 
 install(

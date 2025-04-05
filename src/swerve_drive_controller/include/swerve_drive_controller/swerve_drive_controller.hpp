@@ -23,6 +23,8 @@
 #include "swerve_drive_controller/swerve_drive_kinematics.hpp"
 #include <hardware_interface/loaned_command_interface.hpp>
 
+// #include <swerve_drive_controller/swerve_drive_controller_parameters.hpp>
+
 namespace swerve_drive_controller{
 
 using CallbackReturn = controller_interface::CallbackReturn;
@@ -30,23 +32,32 @@ using CallbackReturn = controller_interface::CallbackReturn;
 
 class Wheel{
     public:
-        Wheel(std::reference_wrapper<hardware_interface::LoanedCommandInterface> velocity, std::string name);
+        Wheel(std::reference_wrapper<hardware_interface::LoanedCommandInterface> velocity,
+            std::reference_wrapper<hardware_interface::LoanedStateInterface> feedback,
+            std::string name);
+
         void set_velocity(double velocity);
+        double get_feedback();
 
     private:
         std::reference_wrapper<hardware_interface::LoanedCommandInterface> velocity_;
+        std::reference_wrapper<hardware_interface::LoanedStateInterface> feedback_;
         std::string name;
 };
 
 class Axle{
     public:
-        Axle(std::reference_wrapper<hardware_interface::LoanedCommandInterface> position, std::string name);
+        Axle(std::reference_wrapper<hardware_interface::LoanedCommandInterface> position,
+            std::reference_wrapper<hardware_interface::LoanedStateInterface> feedback,
+            std::string name);
+
         void set_position(double position);
+        double get_feedback();
 
     private:
         std::reference_wrapper<hardware_interface::LoanedCommandInterface> position_;
+        std::reference_wrapper<hardware_interface::LoanedStateInterface> feedback_;
         std::string name;
-        // std::vector<std::reference_wrapper<hardware_interface::LoanedCommandInterface>> command_interfaces_;
 
 };
 
@@ -106,9 +117,15 @@ class SwerveController : public controller_interface::ControllerInterface{
         std::string rear_left_axle_joint_name_;
         std::string rear_right_axle_joint_name_;
 
+        std::string cmd_vel_topic_;
         std::string odometry_topic_;
         std::string base_footprint_;
 
+        bool enable_odom_tf_ = true;
+        bool open_loop_ = false;
+        bool use_stamped_vel_ = false;
+
+        
         double front_left_velocity_threshold_;
         double front_right_velocity_threshold_;
         double rear_left_velocity_threshold_;
@@ -129,6 +146,7 @@ class SwerveController : public controller_interface::ControllerInterface{
             double x_offset = 0.0; // Chassis Center to Axle Center
             double y_offset = 0.0; // Axle Center to Wheel Center
             double radius = 0.0;   // Assumed to be the same for all wheels
+            double center_of_rotation = 0.0;
         } wheel_params_;
 
         // Timeout to consider cmd_vel commands old
@@ -149,7 +167,8 @@ class SwerveController : public controller_interface::ControllerInterface{
         std::shared_ptr<realtime_tools::RealtimePublisher<tf2_msgs::msg::TFMessage>> realtime_odometry_transform_publisher_ = nullptr;
 
         bool is_halted_ = false;
-        bool use_stamped_vel_ = true;
+       
+
         bool reset();
         void halt();
 };

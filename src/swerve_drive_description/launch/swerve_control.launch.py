@@ -13,7 +13,7 @@ from launch.substitutions import Command, FindExecutable, PathJoinSubstitution, 
 def generate_launch_description():
 
     pkg_path = os.path.join(get_package_share_directory('swerve_drive_description'))
-    xacro_file = os.path.join(pkg_path,'urdf','swerve_drive.xacro')
+    xacro_file = os.path.join(pkg_path,'urdf','base.xacro')
     controllers_file = os.path.join(pkg_path, 'config', 'swerve_controller.yaml')
 
     robot_description_config = xacro.process_file(xacro_file)
@@ -48,7 +48,7 @@ def generate_launch_description():
     robot_description_content = Command(
         [
             PathJoinSubstitution([FindExecutable(name="xacro")]), " ",
-            PathJoinSubstitution([FindPackageShare("swerve_drive_description"), "urdf", "swerve_drive.xacro"]), " ",
+            PathJoinSubstitution([FindPackageShare("swerve_drive_description"), "urdf_new", "base.xacro"]), " ",
         ]
     )
 

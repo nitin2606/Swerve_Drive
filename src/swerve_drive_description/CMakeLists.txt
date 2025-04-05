@@ -17,8 +17,6 @@ install(DIRECTORY models/
 install(DIRECTORY urdf/
         DESTINATION share/${PROJECT_NAME}/urdf)
 
-install(DIRECTORY urdf_new/
-        DESTINATION share/${PROJECT_NAME}/urdf_new)
 
 
 install(DIRECTORY meshes/

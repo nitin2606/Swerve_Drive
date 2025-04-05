@@ -1,14 +1,19 @@
 <?xml version="1.0" ?>
-<robot name="amr" xmlns:xacro="http://www.ros.org/wiki/xacro" >
+<robot name="swerve" xmlns:xacro="http://www.ros.org/wiki/xacro" >
+    <material name="black">
+        <color rgba="0.01 0.01 0.01 1.000"/>
+    </material>
+    <material name="silver">
+        <color rgba="0.700 0.700 0.700 1.000"/>
+    </material>
+    <material name="gray">
+        <color rgba="0.250 0.250 0.250 1.000"/>
+    </material>
+    <material name="blue">
+        <color rgba="0.000 0.000 0.700 1.000"/>
+    </material>
 
-<material name="silver">
-  <color rgba="0.700 0.700 0.700 1.000"/>
-</material>
-<material name="berry" >
-  <color rgba="0.6 0.058823529411764705 0.29411764705882354 1.0" />
-</material>
-
-<material name="red" >
-  <color rgba="1 0.0 0.0 1.0" />
-</material>
+    <material name="orange">
+        <color rgba="1.000 0.624 0.000 1.000"/>
+    </material>
 </robot>
