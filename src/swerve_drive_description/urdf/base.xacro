@@ -39,12 +39,12 @@
 
     <xacro:arg name="hw_interface_plugin" default="swerve_drive_hardware/SwerveDriveHardware"/> 
 
-    <xacro:include filename="$(find swerve_drive_description)/urdf_new/materials.xacro" />
-    <xacro:include filename="$(find swerve_drive_description)/urdf_new/macros.xacro" />
-    <xacro:include filename="$(find swerve_drive_description)/urdf_new/control.xacro"/>
+    <xacro:include filename="$(find swerve_drive_description)/urdf/materials.xacro" />
+    <xacro:include filename="$(find swerve_drive_description)/urdf/macros.xacro" />
+    <xacro:include filename="$(find swerve_drive_description)/urdf/control.xacro"/>
 
     <xacro:if value="$(arg is_simulation)">
-    <xacro:include filename="$(find swerve_drive_description)/urdf_new/gazebo.xacro" />
+    <xacro:include filename="$(find swerve_drive_description)/urdf/gazebo.xacro" />
     </xacro:if>
 
     <!-- MODEL -->

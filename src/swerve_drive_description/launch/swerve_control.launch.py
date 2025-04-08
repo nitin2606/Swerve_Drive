@@ -48,7 +48,7 @@ def generate_launch_description():
     robot_description_content = Command(
         [
             PathJoinSubstitution([FindExecutable(name="xacro")]), " ",
-            PathJoinSubstitution([FindPackageShare("swerve_drive_description"), "urdf_new", "base.xacro"]), " ",
+            PathJoinSubstitution([FindPackageShare("swerve_drive_description"), "urdf", "base.xacro"]), " ",
         ]
     )
 
