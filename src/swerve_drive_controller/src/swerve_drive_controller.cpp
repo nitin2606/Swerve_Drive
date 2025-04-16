@@ -12,7 +12,6 @@
 #include "swerve_drive_controller/swerve_drive_controller.hpp"
 #include "hardware_interface/types/hardware_interface_type_values.hpp"
 
-
 namespace{
 
 constexpr auto DEFAULT_COMMAND_TOPIC = "~/cmd_vel";
@@ -72,12 +71,12 @@ std::array<std::pair<double, double>, 4> wheel_positions_ = {
 
 
 SwerveController::SwerveController() : controller_interface::ControllerInterface(), swerveDriveKinematics_(wheel_positions_){
-  auto zero_twist = std::make_shared<Twist>();
+  auto zero_twist = std::make_shared<TwistStamped>();
   zero_twist->header.stamp = rclcpp::Time(0);
   zero_twist->twist.linear.x = 0.0;
   zero_twist->twist.linear.y = 0.0;
   zero_twist->twist.angular.z = 0.0;
-  received_velocity_msg_ptr_.set(zero_twist);
+  received_velocity_msg_ptr_.writeFromNonRT(zero_twist);
 }
 
 CallbackReturn SwerveController::on_init(){
@@ -267,13 +266,17 @@ CallbackReturn SwerveController::on_configure(const rclcpp_lifecycle::State & /*
           return CallbackReturn::ERROR;
         }
 
-        const Twist empty_twist;
-        received_velocity_msg_ptr_.set(std::make_shared<Twist>(empty_twist));
+        TwistStamped empty_twist;
+        empty_twist.header.stamp = get_node()->now();  // or pass in `current_time` from update()
+        empty_twist.twist.linear.x = 0.0;
+        empty_twist.twist.linear.y = 0.0;
+        empty_twist.twist.angular.z = 0.0;
+        received_velocity_msg_ptr_.writeFromNonRT(std::make_shared<TwistStamped>(empty_twist));
 
         // Initialize subscription for velocity command
         if (use_stamped_vel_){
-            velocity_command_subscriber_ = get_node()->create_subscription<Twist>(
-              DEFAULT_COMMAND_TOPIC, rclcpp::SystemDefaultsQoS(), [this](const std::shared_ptr<Twist> msg) -> void {
+            velocity_command_subscriber_ = get_node()->create_subscription<TwistStamped>(
+              DEFAULT_COMMAND_TOPIC, rclcpp::SystemDefaultsQoS(), [this](const std::shared_ptr<TwistStamped> msg) -> void {
 
                 if (!subscriber_is_active_){
                   RCLCPP_WARN(get_node()->get_logger(), "Can't accept new commands. subscriber is inactive");
@@ -287,22 +290,21 @@ CallbackReturn SwerveController::on_configure(const rclcpp_lifecycle::State & /*
                         "time, this message will only be shown once");
                     msg->header.stamp = get_node()->get_clock()->now();
                 }
-                received_velocity_msg_ptr_.set(std::move(msg));
+                received_velocity_msg_ptr_.writeFromNonRT(std::move(msg));
             });
             RCLCPP_INFO(logger, "INSIDE STAMPED TWIST SUBSCRIPTION");
         }
 
         else{
-            velocity_command_unstamped_subscriber_ = get_node()->create_subscription<geometry_msgs::msg::Twist>(
+            velocity_command_unstamped_subscriber_ = get_node()->create_subscription<Twist>(
             DEFAULT_COMMAND_UNSTAMPED_TOPIC, rclcpp::SystemDefaultsQoS(),
-            [this](const std::shared_ptr<geometry_msgs::msg::Twist> msg) -> void {
+            [this](const std::shared_ptr<Twist> msg) -> void {
                 if (!subscriber_is_active_){
                     RCLCPP_WARN(get_node()->get_logger(), "Can't accept new commands. subscriber is inactive");
                     return;
                 }
                 // Write fake header in the stored stamped command
-                std::shared_ptr<Twist> twist_stamped;
-                received_velocity_msg_ptr_.get(twist_stamped);
+                const std::shared_ptr<TwistStamped> twist_stamped = *(received_velocity_msg_ptr_.readFromRT());
                 twist_stamped->twist = *msg;
                 twist_stamped->header.stamp = get_node()->get_clock()->now();
             });
@@ -391,7 +393,8 @@ controller_interface::return_type SwerveController::update(const rclcpp::Time &t
     // RCLCPP_INFO(get_node()->get_logger(), "[SWERVE_DRIVE_CONTROLLER] INSIDE on_undate...");
 
     auto logger = get_node()->get_logger();
-    if (get_state().id() == State::PRIMARY_STATE_INACTIVE){
+    if (this->get_lifecycle_state().id() == State::PRIMARY_STATE_INACTIVE){
+      
         
       if (!is_halted_){
 
@@ -404,18 +407,17 @@ controller_interface::return_type SwerveController::update(const rclcpp::Time &t
 
     const auto current_time = time;
 
-    std::shared_ptr<Twist> last_command_msg = std::make_shared<Twist>();
-    received_velocity_msg_ptr_.get(last_command_msg);
-
+    std::shared_ptr<TwistStamped> last_command_msg = *(received_velocity_msg_ptr_.readFromRT());
+    
     if (last_command_msg == nullptr){
 
-      last_command_msg = std::make_shared<Twist>();
+      last_command_msg = std::make_shared<TwistStamped>();
       last_command_msg->header.stamp = current_time;
       last_command_msg->twist.linear.x = 0.0;
       last_command_msg->twist.linear.y = 0.0;
       last_command_msg->twist.angular.z = 0.0;
 
-      received_velocity_msg_ptr_.set(last_command_msg);  // Update the shared pointer
+      received_velocity_msg_ptr_.writeFromNonRT(last_command_msg);  // Update the shared pointer
 
       // RCLCPP_WARN(logger, "No velocity command received, using zero velocity");
       
@@ -435,7 +437,7 @@ controller_interface::return_type SwerveController::update(const rclcpp::Time &t
       last_command_msg->twist.angular.z = 0.0;
     }
 
-    Twist command = *last_command_msg;
+    TwistStamped command = *last_command_msg;
     double &linear_x_cmd = command.twist.linear.x;
     double &linear_y_cmd = command.twist.linear.y;
     double &angular_cmd = command.twist.angular.z;
@@ -717,7 +719,7 @@ CallbackReturn SwerveController::on_cleanup(const rclcpp_lifecycle::State &){
     return CallbackReturn::ERROR;
   }
 
-  received_velocity_msg_ptr_.set(std::make_shared<Twist>());
+  received_velocity_msg_ptr_.writeFromNonRT(std::make_shared<TwistStamped>());
   return CallbackReturn::SUCCESS;
 }
 
@@ -736,12 +738,12 @@ bool SwerveController::reset(){
   velocity_command_subscriber_.reset();
   velocity_command_unstamped_subscriber_.reset();
 
-  auto zero_twist = std::make_shared<Twist>();
+  auto zero_twist = std::make_shared<TwistStamped>();
   zero_twist->header.stamp = get_node()->get_clock()->now();
   zero_twist->twist.linear.x = 0.0;
   zero_twist->twist.linear.y = 0.0;
   zero_twist->twist.angular.z = 0.0;
-  received_velocity_msg_ptr_.set(zero_twist);
+  received_velocity_msg_ptr_.writeFromNonRT(zero_twist);
 
   // received_velocity_msg_ptr_.set(nullptr);
   is_halted_ = false;

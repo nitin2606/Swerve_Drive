@@ -16,12 +16,12 @@
 #include "tf2_msgs/msg/tf_message.hpp"
 #include "hardware_interface/handle.hpp"
 #include "rclcpp_lifecycle/state.hpp"
-#include "realtime_tools/realtime_box.h"
-#include "realtime_tools/realtime_buffer.h"
-#include "realtime_tools/realtime_publisher.h"
+#include "realtime_tools/realtime_box.hpp"
+#include "realtime_tools/realtime_buffer.hpp"
+#include "realtime_tools/realtime_publisher.hpp"
 #include "tf2_msgs/msg/tf_message.hpp"
-#include "swerve_drive_controller/swerve_drive_kinematics.hpp"
 #include <hardware_interface/loaned_command_interface.hpp>
+#include "swerve_drive_controller/swerve_drive_kinematics.hpp"
 
 // #include <swerve_drive_controller/swerve_drive_controller_parameters.hpp>
 
@@ -58,11 +58,11 @@ class Axle{
         std::reference_wrapper<hardware_interface::LoanedCommandInterface> position_;
         std::reference_wrapper<hardware_interface::LoanedStateInterface> feedback_;
         std::string name;
-
 };
 
 class SwerveController : public controller_interface::ControllerInterface{
-    using Twist = geometry_msgs::msg::TwistStamped;
+    using TwistStamped = geometry_msgs::msg::TwistStamped;
+    using Twist = geometry_msgs::msg::Twist;
 
 
     public:
@@ -133,7 +133,7 @@ class SwerveController : public controller_interface::ControllerInterface{
 
         SwerveDriveKinematics swerveDriveKinematics_;
         
-        std::queue<Twist> previous_commands_;  // last two commands
+        std::queue<TwistStamped> previous_commands_;  // last two commands
 
         double pose_covariance_diagonal_array_[6];
         double twist_covariance_diagonal_array_[6];
@@ -155,11 +155,10 @@ class SwerveController : public controller_interface::ControllerInterface{
 
         // Topic Subscription
         bool subscriber_is_active_ = false;
-        rclcpp::Subscription<Twist>::SharedPtr velocity_command_subscriber_ = nullptr;
-        rclcpp::Subscription<geometry_msgs::msg::Twist>::SharedPtr
-            velocity_command_unstamped_subscriber_ = nullptr;
+        rclcpp::Subscription<TwistStamped>::SharedPtr velocity_command_subscriber_ = nullptr;
+        rclcpp::Subscription<Twist>::SharedPtr velocity_command_unstamped_subscriber_ = nullptr; 
 
-        realtime_tools::RealtimeBox<std::shared_ptr<Twist>> received_velocity_msg_ptr_{nullptr};
+        realtime_tools::RealtimeBuffer<std::shared_ptr<TwistStamped>> received_velocity_msg_ptr_{nullptr};
 
         std::shared_ptr<rclcpp::Publisher<nav_msgs::msg::Odometry>> odometry_publisher_ = nullptr;
         std::shared_ptr<realtime_tools::RealtimePublisher<nav_msgs::msg::Odometry>> realtime_odometry_publisher_ = nullptr;
