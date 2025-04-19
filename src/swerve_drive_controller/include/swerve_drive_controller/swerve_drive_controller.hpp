@@ -33,7 +33,7 @@ using CallbackReturn = controller_interface::CallbackReturn;
 class Wheel{
     public:
         Wheel(std::reference_wrapper<hardware_interface::LoanedCommandInterface> velocity,
-            std::reference_wrapper<hardware_interface::LoanedStateInterface> feedback,
+            std::reference_wrapper<const hardware_interface::LoanedStateInterface> feedback,
             std::string name);
 
         void set_velocity(double velocity);
@@ -41,14 +41,14 @@ class Wheel{
 
     private:
         std::reference_wrapper<hardware_interface::LoanedCommandInterface> velocity_;
-        std::reference_wrapper<hardware_interface::LoanedStateInterface> feedback_;
+        std::reference_wrapper<const hardware_interface::LoanedStateInterface> feedback_;
         std::string name;
 };
 
 class Axle{
     public:
         Axle(std::reference_wrapper<hardware_interface::LoanedCommandInterface> position,
-            std::reference_wrapper<hardware_interface::LoanedStateInterface> feedback,
+            std::reference_wrapper<const hardware_interface::LoanedStateInterface> feedback,
             std::string name);
 
         void set_position(double position);
@@ -56,7 +56,7 @@ class Axle{
 
     private:
         std::reference_wrapper<hardware_interface::LoanedCommandInterface> position_;
-        std::reference_wrapper<hardware_interface::LoanedStateInterface> feedback_;
+        std::reference_wrapper<const hardware_interface::LoanedStateInterface> feedback_;
         std::string name;
 };
 

@@ -206,10 +206,12 @@ hardware_interface::return_type swerve_drive_hardware::SwerveDriveHardware::read
     auto pos_i = names_to_pos_cmd_map_[joint_names_[i]];
     
     if (vel_i > 0) {
-      // RCLCPP_INFO(rclcpp::get_logger("TestDriveHardware"), "J %f", hw_command_velocity_[vel_i - 1]);
       auto vel = command_velocities_[vel_i - 1];
       state_velocities_[i] = vel;
-      state_positions_[i] = state_positions_[i] + dt * vel;
+      // state_positions_[i] = state_positions_[i] + dt * vel;
+      state_positions_[i] = 0.0;
+      // RCLCPP_INFO(rclcpp::get_logger("TestDriveHardware"), "Joint: %s   Vel: %f ", joint_names_[i],  vel);
+
     } 
 
     else if (pos_i > 0) {
@@ -217,7 +219,11 @@ hardware_interface::return_type swerve_drive_hardware::SwerveDriveHardware::read
       auto pos = command_steering_angles_[pos_i - 1];
       state_velocities_[i] = 0.0;
       state_positions_[i] = pos;
-    }    
+      // RCLCPP_INFO(rclcpp::get_logger("TestDriveHardware"), "Joint: %s  Pos: %f", joint_names_[i], pos);
+  
+    } 
+
+    
   }
   return hardware_interface::return_type::OK;
 }

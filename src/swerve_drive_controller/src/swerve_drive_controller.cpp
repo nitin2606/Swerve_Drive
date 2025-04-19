@@ -33,7 +33,7 @@ using lifecycle_msgs::msg::State;
 
 
 Wheel::Wheel(std::reference_wrapper<hardware_interface::LoanedCommandInterface> velocity,
-  std::reference_wrapper<hardware_interface::LoanedStateInterface> feedback,
+  std::reference_wrapper<const hardware_interface::LoanedStateInterface> feedback,
   std::string name)
   : velocity_(velocity),feedback_(feedback), name(std::move(name)) {}
 
@@ -42,12 +42,13 @@ void Wheel::set_velocity(double velocity){
 }
 
 double Wheel::get_feedback(){
-  return Wheel::feedback_.get().get_value();
+  // return Wheel::feedback_.get().get_value();
+  return Wheel::feedback_.get().get_optional().value();
 }
 
 
 Axle::Axle(std::reference_wrapper<hardware_interface::LoanedCommandInterface> position,
-  std::reference_wrapper<hardware_interface::LoanedStateInterface> feedback,
+  std::reference_wrapper<const hardware_interface::LoanedStateInterface> feedback,
   std::string name)
   : position_(position), feedback_(feedback) ,name(std::move(name)) {}
 
@@ -57,7 +58,9 @@ void Axle::set_position(double position){
 }
 
 double Axle::get_feedback(){
-  return Axle::feedback_.get().get_value();
+  // return Axle::feedback_.get().get_value();
+  return Axle::feedback_.get().get_optional().value();
+
 }
 
 
@@ -282,7 +285,6 @@ CallbackReturn SwerveController::on_configure(const rclcpp_lifecycle::State & /*
                   RCLCPP_WARN(get_node()->get_logger(), "Can't accept new commands. subscriber is inactive");
                   return;
                 }
-
                 if ((msg->header.stamp.sec == 0) && (msg->header.stamp.nanosec == 0)){
                     RCLCPP_WARN_ONCE(
                         get_node()->get_logger(),
@@ -388,6 +390,88 @@ CallbackReturn SwerveController::on_configure(const rclcpp_lifecycle::State & /*
 }
 
 
+CallbackReturn SwerveController::on_activate(const rclcpp_lifecycle::State &){
+
+  RCLCPP_INFO(get_node()->get_logger(), "[SWERVE_DRIVE_CONTROLLER] INSIDE on_activate...");
+
+  front_left_wheel_handle_ = get_wheel(front_left_wheel_joint_name_);
+  front_right_wheel_handle_ = get_wheel(front_right_wheel_joint_name_);
+  rear_left_wheel_handle_ = get_wheel(rear_left_wheel_joint_name_);
+  rear_right_wheel_handle_= get_wheel(rear_right_wheel_joint_name_);
+
+  front_left_axle_handle_ = get_axle(front_left_axle_joint_name_);
+  front_right_axle_handle_ = get_axle(front_right_axle_joint_name_);
+  rear_left_axle_handle_ = get_axle(rear_left_axle_joint_name_);
+  rear_right_axle_handle_ = get_axle(rear_right_axle_joint_name_);
+
+
+  if(!front_left_wheel_handle_){
+    RCLCPP_ERROR(get_node()->get_logger(), "ERROR IN FETCHING front_left_wheel_handle_");
+    return CallbackReturn::ERROR;
+  }
+
+  if(!front_right_wheel_handle_){
+    RCLCPP_ERROR(get_node()->get_logger(), "ERROR IN FETCHING front_right_wheel_handle_");
+    return CallbackReturn::ERROR;
+  }
+
+  if(!rear_left_wheel_handle_){
+    RCLCPP_ERROR(get_node()->get_logger(), "ERROR IN FETCHING rear_left_wheel_handle_");
+    return CallbackReturn::ERROR;
+  }
+
+  if(!rear_right_wheel_handle_){
+    RCLCPP_ERROR(get_node()->get_logger(), "ERROR IN FETCHING rear_right_wheel_handle_");
+    return CallbackReturn::ERROR;
+  }
+
+  if(!front_left_axle_handle_){
+    RCLCPP_ERROR(get_node()->get_logger(), "ERROR IN FETCHING front_left_axle_handle_");
+    return CallbackReturn::ERROR;
+  }
+
+  if(!front_right_axle_handle_){
+    RCLCPP_ERROR(get_node()->get_logger(), "ERROR IN FETCHING front_right_axle_handle_");
+    return CallbackReturn::ERROR;
+  }
+
+  if(!rear_left_axle_handle_){
+    RCLCPP_ERROR(get_node()->get_logger(), "ERROR IN FETCHING rear_left_axle_handle_");
+    return CallbackReturn::ERROR;
+  }
+
+  if(!rear_right_axle_handle_){
+    RCLCPP_ERROR(get_node()->get_logger(), "ERROR IN FETCHING rear_right_axle_handle_");
+    return CallbackReturn::ERROR;
+  }
+
+  front_left_wheel_handle_ -> set_velocity(0.0);
+  front_right_wheel_handle_ -> set_velocity(0.0);
+  rear_left_wheel_handle_ -> set_velocity(0.0);
+  rear_right_wheel_handle_-> set_velocity(0.0);
+
+  front_left_axle_handle_ ->set_position(0.0);
+  front_right_axle_handle_ ->set_position(0.0);
+  rear_left_axle_handle_ ->set_position(0.0);
+  rear_right_axle_handle_ ->set_position(0.0);
+
+
+  is_halted_ = false;
+  subscriber_is_active_ = true;
+
+  RCLCPP_INFO(get_node()->get_logger(), "Subscriber and publisher are now active.");
+
+    RCLCPP_INFO(get_node()->get_logger(), "Command Interfaces Length In on_activate: %ld", command_interfaces_.size());
+    RCLCPP_INFO(get_node()->get_logger(), "AVAILABLE COMMAND INTERFACES:");
+
+    for (const auto & interface : command_interfaces_) {
+      RCLCPP_INFO(get_node()->get_logger(), "  Name: %s, Interface: %s", interface.get_name().c_str(), interface.get_interface_name().c_str());
+    } 
+  return CallbackReturn::SUCCESS;
+}
+
+
+
 controller_interface::return_type SwerveController::update(const rclcpp::Time &time, const rclcpp::Duration & period){
 
     // RCLCPP_INFO(get_node()->get_logger(), "[SWERVE_DRIVE_CONTROLLER] INSIDE on_undate...");
@@ -423,9 +507,9 @@ controller_interface::return_type SwerveController::update(const rclcpp::Time &t
       
     }
 
-    else if (last_command_msg != nullptr){
-      // RCLCPP_INFO(logger, "X:   %f, Y:   %f, Z_Ang:   %f", last_command_msg->twist.linear.x, last_command_msg->twist.linear.y, last_command_msg->twist.angular.z);
-    }
+    // else if (last_command_msg != nullptr){
+    //   RCLCPP_INFO(logger, "\nX:   %f, Y:   %f, Z_Ang:   %f\n", last_command_msg->twist.linear.x, last_command_msg->twist.linear.y, last_command_msg->twist.angular.z);
+    // }
     
     const auto age_of_last_command = current_time - last_command_msg->header.stamp;
 
@@ -434,6 +518,7 @@ controller_interface::return_type SwerveController::update(const rclcpp::Time &t
     if (age_of_last_command > cmd_vel_timeout_){
 
       last_command_msg->twist.linear.x = 0.0;
+      last_command_msg->twist.linear.y = 0.0;
       last_command_msg->twist.angular.z = 0.0;
     }
 
@@ -529,11 +614,11 @@ controller_interface::return_type SwerveController::update(const rclcpp::Time &t
     }
 
 
-    // RCLCPP_INFO(logger, "-------------------COMPUTED COMMANDS-------------------");
+    // RCLCPP_INFO(logger, "-------------------COMPUTED COMMANDS-------------------\n");
     // RCLCPP_INFO(logger, "\nLinear X:  %f, Linear Y:  %f, Angular Z:  %f", linear_x_cmd, linear_y_cmd, angular_cmd);
-    // RCLCPP_INFO(logger, "Front Left Velocity:  %f, Front Right Velocity: %f, Rear Left Velocity:  %f, Rear Right Velocity:  %f", front_left_velocity, front_right_velocity, rear_left_velocity, rear_right_velocity);
+    // RCLCPP_INFO(logger, "Front Left Velocity:  %f, Front Right Velocity: %f, Rear Left Velocity:  %f, Rear Right Velocity:  %f\n", front_left_velocity, front_right_velocity, rear_left_velocity, rear_right_velocity);
     // RCLCPP_INFO(logger, "Front Left Angle:  %f, Front Right Angle: %f, Rear Left Angle:  %f, Rear Right Angle:  %f\n", front_left_angle, front_right_angle, rear_left_angle, rear_right_angle);
-    // RCLCPP_INFO(logger, "-------------------COMPUTED COMMANDS-------------------");
+    // RCLCPP_INFO(logger, "-------------------COMPUTED COMMANDS-------------------\n");
 
 
 
@@ -564,16 +649,15 @@ controller_interface::return_type SwerveController::update(const rclcpp::Time &t
       std::array<double,4> velocity_feedback_array = {front_left_wheel_velocity, front_right_wheel_velocity, rear_left_wheel_velocity, rear_right_wheel_velocity};
       std::array<double,4> steering_angles = {front_left_wheel_angle, front_right_wheel_angle, rear_left_wheel_angle, rear_right_wheel_angle};
 
-      RCLCPP_INFO(logger, "-------------------GOT FEEDBACK FROM STATE INTERFACE -------------------");
-      RCLCPP_INFO(logger, "front_left_wheel_angle:  %f | front_right_wheel_angle:  %f | rear_left_wheel_angle:  %f | rear_right_wheel_angle: %f", front_left_wheel_angle, front_right_wheel_angle, rear_left_wheel_angle, rear_right_wheel_angle);
-      RCLCPP_INFO(logger, "front_left_wheel_velocity:  %f | front_right_wheel_velocity:  %f | rear_left_wheel_velocity:  %f | rear_right_wheel_velocity:  %f", front_left_wheel_velocity, front_right_wheel_velocity, rear_left_wheel_velocity, rear_right_wheel_velocity);
-      RCLCPP_INFO(logger, "-------------------GOT FEEDBACK FROM STATE INTERFACE-------------------");
+      // RCLCPP_INFO(logger, "-------------------GOT FEEDBACK FROM STATE INTERFACE -------------------\n");
+      // RCLCPP_INFO(logger, "f_l_angle:  %f | f_r_angle:  %f | r_l_angle:  %f | r_r_angle: %f\n", front_left_wheel_angle, front_right_wheel_angle, rear_left_wheel_angle, rear_right_wheel_angle);
+      // RCLCPP_INFO(logger, "f_l_velocity:  %f | f_r_velocity:  %f | r_l_velocity:  %f | r_r_velocity:  %f\n", front_left_wheel_velocity, front_right_wheel_velocity, rear_left_wheel_velocity, rear_right_wheel_velocity);
+      // RCLCPP_INFO(logger, "-------------------GOT FEEDBACK FROM STATE INTERFACE-------------------\n");
 
       odometry_ = swerveDriveKinematics_.update_odometry(velocity_feedback_array, steering_angles, update_dt.seconds());
 
     }
     
-
     tf2::Quaternion orientation;
     orientation.setRPY(0.0, 0.0, odometry_.theta);
 
@@ -600,8 +684,11 @@ controller_interface::return_type SwerveController::update(const rclcpp::Time &t
       odometry_message.header.stamp = time;
       odometry_message.pose.pose.position.x = odometry_.x;
       odometry_message.pose.pose.position.y = odometry_.y;
-      odometry_message.pose.pose.orientation.z = odometry_.theta;
-      
+      // odometry_message.pose.pose.orientation.z = odometry_.theta;
+      odometry_message.pose.pose.orientation.x = orientation.x();
+      odometry_message.pose.pose.orientation.y = orientation.y();
+      odometry_message.pose.pose.orientation.z = orientation.z();
+      odometry_message.pose.pose.orientation.w = orientation.w();
 
       // RCLCPP_INFO(logger, "-------------------COMPUTED ODOMETRY-------------------");
       // RCLCPP_INFO(logger, "Odometry Linear X:  %f, Odometry Linear Y:  %f, Odometry Angular Z:  %f", odometry_.x, odometry_.y, odometry_.theta);
@@ -631,77 +718,6 @@ controller_interface::return_type SwerveController::update(const rclcpp::Time &t
 
 
 
-CallbackReturn SwerveController::on_activate(const rclcpp_lifecycle::State &){
-
-  RCLCPP_INFO(get_node()->get_logger(), "[SWERVE_DRIVE_CONTROLLER] INSIDE on_activate...");
-
-  front_left_wheel_handle_ = get_wheel(front_left_wheel_joint_name_);
-  front_right_wheel_handle_ = get_wheel(front_right_wheel_joint_name_);
-  rear_left_wheel_handle_ = get_wheel(rear_left_wheel_joint_name_);
-  rear_right_wheel_handle_= get_wheel(rear_right_wheel_joint_name_);
-
-  front_left_axle_handle_ = get_axle(front_left_axle_joint_name_);
-  front_right_axle_handle_ = get_axle(front_right_axle_joint_name_);
-  rear_left_axle_handle_ = get_axle(rear_left_axle_joint_name_);
-  rear_right_axle_handle_ = get_axle(rear_right_axle_joint_name_);
-
-
-  if(!front_left_wheel_handle_){
-    RCLCPP_ERROR(get_node()->get_logger(), "ERROR IN FETCHING front_left_wheel_handle_");
-    return CallbackReturn::ERROR;
-  }
-
-  if(!front_right_wheel_handle_){
-    RCLCPP_ERROR(get_node()->get_logger(), "ERROR IN FETCHING front_right_wheel_handle_");
-    return CallbackReturn::ERROR;
-  }
-
-  if(!rear_left_wheel_handle_){
-    RCLCPP_ERROR(get_node()->get_logger(), "ERROR IN FETCHING rear_left_wheel_handle_");
-    return CallbackReturn::ERROR;
-  }
-
-  if(!rear_right_wheel_handle_){
-    RCLCPP_ERROR(get_node()->get_logger(), "ERROR IN FETCHING rear_right_wheel_handle_");
-    return CallbackReturn::ERROR;
-  }
-
-  if(!front_left_axle_handle_){
-    RCLCPP_ERROR(get_node()->get_logger(), "ERROR IN FETCHING front_left_axle_handle_");
-    return CallbackReturn::ERROR;
-  }
-
-  if(!front_right_axle_handle_){
-    RCLCPP_ERROR(get_node()->get_logger(), "ERROR IN FETCHING front_right_axle_handle_");
-    return CallbackReturn::ERROR;
-  }
-
-  if(!rear_left_axle_handle_){
-    RCLCPP_ERROR(get_node()->get_logger(), "ERROR IN FETCHING rear_left_axle_handle_");
-    // std::chrono::seconds sleep_duration(50);
-    // rclcpp::sleep_for(sleep_duration);
-    return CallbackReturn::ERROR;
-  }
-
-  if(!rear_right_axle_handle_){
-    RCLCPP_ERROR(get_node()->get_logger(), "ERROR IN FETCHING rear_right_axle_handle_");
-    return CallbackReturn::ERROR;
-  }
-
-
-  is_halted_ = false;
-  subscriber_is_active_ = true;
-
-  RCLCPP_INFO(get_node()->get_logger(), "Subscriber and publisher are now active.");
-
-    RCLCPP_INFO(get_node()->get_logger(), "Command Interfaces Length In on_activate: %ld", command_interfaces_.size());
-    RCLCPP_INFO(get_node()->get_logger(), "AVAILABLE COMMAND INTERFACES:");
-
-    for (const auto & interface : command_interfaces_) {
-      RCLCPP_INFO(get_node()->get_logger(), "  Name: %s, Interface: %s", interface.get_name().c_str(), interface.get_interface_name().c_str());
-    } 
-  return CallbackReturn::SUCCESS;
-}
 
 CallbackReturn SwerveController::on_deactivate(const rclcpp_lifecycle::State &){
 
@@ -829,7 +845,7 @@ std::shared_ptr<Axle> SwerveController::get_axle( const std::string & axle_name 
 
 
   // Log all available command interfaces for debugging
-  RCLCPP_INFO(logger, "Available command interfaces:");
+  // RCLCPP_INFO(logger, "Available command interfaces:");
   for (const auto& interface : command_interfaces_) {
     RCLCPP_INFO(logger, " - Name: %s, Interface: %s", 
       interface.get_name().c_str(),

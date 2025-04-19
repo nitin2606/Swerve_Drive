@@ -11,7 +11,7 @@ namespace swerve_drive_controller{
 
         // wx = W/2, wy = L/2
 
-        for(size_t i=0; i<4; i++){
+        for(std::size_t i=0; i<4; i++){
             const auto& [wx, wy] = wheel_positions_[i];
 
             // double vx = linear_velocity_x + angular_velocity_z * wy * ((i<2) ? 1:-1);
@@ -31,7 +31,7 @@ namespace swerve_drive_controller{
         
         // Compute robot-centric velocity (assuming perfect wheel control)
         double vx_sum = 0.0, vy_sum = 0.0, wz_sum = 0.0;
-        for(size_t i=0; i<4; i++){
+        for(std::size_t i=0; i<4; i++){
             double vx = wheel_velocities[i] * std::cos(steering_angles[i]);
             double vy = wheel_velocities[i] * std::sin(steering_angles[i]);
 
@@ -46,7 +46,7 @@ namespace swerve_drive_controller{
         double vy_robot = vy_sum / 4.0;
 
         double wz_denominator = 0.0;
-        for (size_t i = 0; i < 4; i++) {
+        for (std::size_t i = 0; i < 4; i++) {
             wz_denominator += (wheel_positions_[i].first * wheel_positions_[i].first +
                             wheel_positions_[i].second * wheel_positions_[i].second);
         }

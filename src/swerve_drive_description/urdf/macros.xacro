@@ -162,8 +162,8 @@
 
         <joint name="joint_steering_${name}">
             <command_interface name="position">
-                <param name="min">-${2 * PI}</param>
-                <param name="max">${2 * PI}</param>
+                <param name="min">-${PI}</param>
+                <param name="max">${PI}</param>
             </command_interface>
             <state_interface name="position"/>
             <state_interface name="velocity"/>
@@ -172,8 +172,8 @@
 
         <joint name="joint_wheel_${name}">
             <command_interface name="velocity">
-                <param name="min">-1</param>
-                <param name="max">1</param>
+                <param name="min">-10</param>
+                <param name="max">10</param>
             </command_interface>
             <state_interface name="position"/>
             <state_interface name="velocity"/>
