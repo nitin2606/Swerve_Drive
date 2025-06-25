@@ -54,7 +54,7 @@
                 </visual>
             </link>
         </model>
-        
+
         <!-- <model>
             <uri>/home/knight/swerve_drive_ws/src/swerve_drive_description/urdf/swerve_drive.xacro</uri>
         </model> -->
@@ -65,10 +65,10 @@
              <!-- <uri>/home/knight/tenx_ws/src/bot_description/models/room_with_walls_1/model.sdf</uri> -->
             <uri>/home/knight/swerve_drive_ws/src/swerve_drive_description/urdf/swerve_drive.xacro</uri>
             <!-- <uri>/home/knight/swerve_drive_ws/src/swerve_drive_description/models/room_with_walls_1</uri> -->
-            
+
             <pose>-2.0 2 0 0 0 0</pose>
         </include>
-<!-- 
+<!--
         </include>
             <uri>/home/knight/swerve_drive_ws/src/swerve_drive_description/urdf/swerve_drive.xacro</uri>
         <include> -->

@@ -12,18 +12,20 @@ from launch.substitutions import Command, FindExecutable, PathJoinSubstitution, 
 
 def generate_launch_description():
 
-    pkg_path = os.path.join(get_package_share_directory('swerve_drive_description'))
-    xacro_file = os.path.join(pkg_path,'urdf','base.xacro')
-    controllers_file = os.path.join(pkg_path, 'config', 'swerve_controller.yaml')
+    pkg_path = os.path.join(get_package_share_directory("swerve_drive_description"))
+    xacro_file = os.path.join(pkg_path, "urdf", "base.xacro")
+    controllers_file = os.path.join(pkg_path, "config", "swerve_controller.yaml")
 
     robot_description_config = xacro.process_file(xacro_file)
     robot_description_xml = robot_description_config.toxml()
 
-    source_code_path = os.path.abspath(os.path.join(pkg_path, "../../../../src/swerve_drive_description"))
+    source_code_path = os.path.abspath(
+        os.path.join(pkg_path, "../../../../src/swerve_drive_description")
+    )
     urdf_save_path = os.path.join(source_code_path, "swerve.urdf")
-    with open(urdf_save_path, 'w') as f:
+    with open(urdf_save_path, "w") as f:
         f.write(robot_description_xml)
-    
+
     declared_arguments = []
     declared_arguments.append(
         DeclareLaunchArgument(
@@ -44,15 +46,18 @@ def generate_launch_description():
     gui = LaunchConfiguration("gui")
     use_mock_hardware = LaunchConfiguration("use_mock_hardware")
 
-
     robot_description_content = Command(
         [
-            PathJoinSubstitution([FindExecutable(name="xacro")]), " ",
-            PathJoinSubstitution([FindPackageShare("swerve_drive_description"), "urdf", "base.xacro"]), " ",
+            PathJoinSubstitution([FindExecutable(name="xacro")]),
+            " ",
+            PathJoinSubstitution(
+                [FindPackageShare("swerve_drive_description"), "urdf", "base.xacro"]
+            ),
+            " ",
         ]
     )
 
-    params = {'robot_description': robot_description_xml, 'use_sim_time': False}
+    params = {"robot_description": robot_description_xml, "use_sim_time": False}
     robot_description = {"robot_description": robot_description_content}
 
     rviz_config_file = PathJoinSubstitution(
@@ -115,7 +120,7 @@ def generate_launch_description():
             target_action=robot_state_pub_node,
             on_exit=[control_node],
         )
-)
+    )
 
     delay_rviz_after_joint_state_broadcaster_spawner = RegisterEventHandler(
         event_handler=OnProcessExit(
@@ -130,16 +135,14 @@ def generate_launch_description():
             on_exit=[joint_state_broadcaster_spawner],
         )
     )
-    
+
     nodes = [
-        
         robot_state_pub_node,
         delay_control_node_after_robot_state_pub,
         control_node,
         delay_joint_state_broadcaster_after_robot_controller_spawner,
         robot_controller_spawner,
         delay_rviz_after_joint_state_broadcaster_spawner,
-            
     ]
-      
+
     return LaunchDescription(declared_arguments + nodes)

@@ -5,16 +5,17 @@ from rclpy.node import Node
 from geometry_msgs.msg import Twist
 from pynput import keyboard  # Install using: pip install pynput
 
+
 class SwerveKeyboardController(Node):
     def __init__(self):
-        super().__init__('swerve_keyboard_controller')
-        self.publisher_ = self.create_publisher(Twist, '/cmd_vel', 10)
+        super().__init__("swerve_keyboard_controller")
+        self.publisher_ = self.create_publisher(Twist, "/cmd_vel", 10)
         self.timer = self.create_timer(0.1, self.timer_callback)  # 10 Hz
         self.linear_x = 0.0
         self.linear_y = 0.0
         self.angular_z = 0.0
         self.speed_step = 0.1  # Increment/decrement step for velocity
-        self.max_speed = 1.0   # Maximum speed limit
+        self.max_speed = 1.0  # Maximum speed limit
 
         self.get_logger().info("Swerve Drive Keyboard Controller Started!")
         self.get_logger().info("Use the following keys to control the robot:")
@@ -32,19 +33,19 @@ class SwerveKeyboardController(Node):
 
     def on_press(self, key):
         try:
-            if key.char == 'w':  # Increase linear X velocity
+            if key.char == "w":  # Increase linear X velocity
                 self.linear_x = min(self.linear_x + self.speed_step, self.max_speed)
-            elif key.char == 's':  # Decrease linear X velocity
+            elif key.char == "s":  # Decrease linear X velocity
                 self.linear_x = max(self.linear_x - self.speed_step, -self.max_speed)
-            elif key.char == 'a':  # Increase linear Y velocity
+            elif key.char == "a":  # Increase linear Y velocity
                 self.linear_y = min(self.linear_y + self.speed_step, self.max_speed)
-            elif key.char == 'd':  # Decrease linear Y velocity
+            elif key.char == "d":  # Decrease linear Y velocity
                 self.linear_y = max(self.linear_y - self.speed_step, -self.max_speed)
-            elif key.char == 'q':  # Increase angular Z velocity
+            elif key.char == "q":  # Increase angular Z velocity
                 self.angular_z = min(self.angular_z + self.speed_step, self.max_speed)
-            elif key.char == 'e':  # Decrease angular Z velocity
+            elif key.char == "e":  # Decrease angular Z velocity
                 self.angular_z = max(self.angular_z - self.speed_step, -self.max_speed)
-            elif key.char == 'x':  # Stop the robot
+            elif key.char == "x":  # Stop the robot
                 self.linear_x = 0.0
                 self.linear_y = 0.0
                 self.angular_z = 0.0
@@ -62,6 +63,7 @@ class SwerveKeyboardController(Node):
         twist_msg.angular.z = self.angular_z
         self.publisher_.publish(twist_msg)
 
+
 def main(args=None):
     rclpy.init(args=args)
     controller = SwerveKeyboardController()
@@ -74,5 +76,6 @@ def main(args=None):
     controller.destroy_node()
     rclpy.shutdown()
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     main()

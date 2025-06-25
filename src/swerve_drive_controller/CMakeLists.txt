@@ -17,16 +17,10 @@ find_package(controller_interface REQUIRED)
 find_package(pluginlib REQUIRED)
 find_package(rclcpp_lifecycle REQUIRED)
 find_package(realtime_tools REQUIRED)
-find_package(generate_parameter_library REQUIRED)
-
-generate_parameter_library(swerve_drive_controller_parameters
-  src/swerve_drive_controller_parameter.yaml
-  include/swerve_drive_controller/custom_validators.hpp
-)
 
 pluginlib_export_plugin_description_file(controller_interface swerve_drive_plugin.xml)
 
-add_library(swerve_drive_controller SHARED 
+add_library(swerve_drive_controller SHARED
   src/swerve_drive_controller.cpp
   src/swerve_drive_kinematics.cpp
 )
@@ -57,13 +51,6 @@ install(TARGETS swerve_drive_controller
   RUNTIME DESTINATION bin
 )
 
-install(TARGETS swerve_drive_controller_parameters
-  EXPORT export_swerve_drive_controller
-  RUNTIME DESTINATION bin
-  ARCHIVE DESTINATION lib
-  LIBRARY DESTINATION lib
-)
-
 install(
   FILES swerve_drive_plugin.xml
   DESTINATION share/${PROJECT_NAME}
@@ -71,31 +58,36 @@ install(
 
 
 if(BUILD_TESTING)
-  find_package(ament_lint_auto REQUIRED)
+
+  find_package(controller_manager REQUIRED)
   find_package(ament_lint_auto REQUIRED)
   find_package(ament_cmake_gmock REQUIRED)
-  find_package(controller_manager REQUIRED)
+  find_package(ament_cmake_gtest REQUIRED)
+  find_package(ament_cmake_uncrustify REQUIRED)
   find_package(ros2_control_test_assets REQUIRED)
 
-  ament_add_gmock(
-    test_load_swerve_drive_controller
-    test/test_load_swerve_drive_controller.cpp
+  ament_add_gtest(test_swerve_drive_controller
+    test/test_swerve_drive_controller.cpp
   )
-  
-  target_include_directories(test_load_swerve_drive_controller PRIVATE include)
+
+  target_include_directories(test_swerve_drive_controller PRIVATE include)
+  ament_target_dependencies(test_swerve_drive_controller
+    controller_interface
+    hardware_interface
+    rclcpp
+    geometry_msgs
+    nav_msgs
+  )
+  target_link_libraries(test_swerve_drive_controller
+    ${PROJECT_NAME}
+  )
+
+  add_definitions(-DTEST_FILES_DIRECTORY="${CMAKE_CURRENT_SOURCE_DIR}/test")
+  ament_add_gmock(test_load_swerve_drive_controller test/test_load_swerve_drive_controller.cpp)
   ament_target_dependencies(test_load_swerve_drive_controller
     controller_manager
     ros2_control_test_assets
-    rclcpp
-    pluginlib
   )
-
-  target_link_libraries(test_load_swerve_drive_controller
-    swerve_drive_controller
-  )
-
-  set(ament_cmake_copyright_FOUND TRUE)
-  set(ament_cmake_cpplint_FOUND TRUE)
   ament_lint_auto_find_test_dependencies()
 endif()
 

@@ -3,6 +3,7 @@ from launch_ros.substitutions import FindPackageShare
 from launch import LaunchDescription
 from launch.actions import RegisterEventHandler
 from launch.event_handlers import OnProcessStart
+
 # from launch.actions import IncludeLaunchDescription, ExecuteProcess
 from launch.actions import IncludeLaunchDescription, TimerAction
 from launch.launch_description_sources import PythonLaunchDescriptionSource
@@ -20,25 +21,20 @@ from launch_ros.substitutions import FindPackageShare
 
 def generate_launch_description():
     # Define the package directory and robot description file
-    share_dir = get_package_share_directory('swerve_drive_description')
+    share_dir = get_package_share_directory("swerve_drive_description")
     # controller_share_dir = get_package_share_directory('amr_control')  # Adjust if needed
 
     # Process the XACRO file to get the URDF
-    xacro_file = os.path.join(share_dir, 'urdf', 'swerve_drive.xacro')
+    xacro_file = os.path.join(share_dir, "urdf", "swerve_drive.xacro")
     robot_description_config = xacro.process_file(xacro_file)
     robot_urdf = robot_description_config.toxml()
 
     config_file = os.path.join(
-        get_package_share_directory('swerve_drive_description'),
-        'config',
-        'ignition.yaml'
-
+        get_package_share_directory("swerve_drive_description"), "config", "ignition.yaml"
     )
 
     controller_config_file = os.path.join(
-        get_package_share_directory('swerve_drive_description'),
-        'config',
-        'swerve_controller.yaml'
+        get_package_share_directory("swerve_drive_description"), "config", "swerve_controller.yaml"
     )
     # Path to controller config file
     # controller_config_file = os.path.join(share_dir, 'config', 'controller.yaml')
@@ -61,52 +57,42 @@ def generate_launch_description():
 
     # Include gz_sim launch file
     ignition_launch = IncludeLaunchDescription(
-        PythonLaunchDescriptionSource([
-            PathJoinSubstitution([
-                FindPackageShare("ros_ign_gazebo"),
-                "launch",
-                "ign_gazebo.launch.py"
-            ])
-        ]),
-        launch_arguments={
-            "ign_args":"-r"
-        }.items(),
+        PythonLaunchDescriptionSource(
+            [
+                PathJoinSubstitution(
+                    [FindPackageShare("ros_ign_gazebo"), "launch", "ign_gazebo.launch.py"]
+                )
+            ]
+        ),
+        launch_arguments={"ign_args": "-r"}.items(),
     )
 
     # Spawn robot node
     spawn_robot = Node(
         package="ros_ign_gazebo",
         executable="create",
-        arguments=[
-            "-name", "my_robot",
-            "-file", xacro_file,
-            "-x", "0",
-            "-y", "0",
-            "-z", "0"
-        ],
-        output="screen"
+        arguments=["-name", "my_robot", "-file", xacro_file, "-x", "0", "-y", "0", "-z", "0"],
+        output="screen",
     )
     # Nodes
     robot_state_publisher_node = Node(
-        package='robot_state_publisher',
-        executable='robot_state_publisher',
-        name='robot_state_publisher',
-        parameters=[
-            {'robot_description': robot_urdf}
-        ]
+        package="robot_state_publisher",
+        executable="robot_state_publisher",
+        name="robot_state_publisher",
+        parameters=[{"robot_description": robot_urdf}],
     )
 
     joint_state_publisher_node = Node(
-        package='joint_state_publisher',
-        executable='joint_state_publisher',
-        name='joint_state_publisher'
+        package="joint_state_publisher",
+        executable="joint_state_publisher",
+        name="joint_state_publisher",
     )
 
     bridge_node = Node(
-        package='ros_ign_bridge',
-        executable='parameter_bridge',
+        package="ros_ign_bridge",
+        executable="parameter_bridge",
         # arguments=[f'--config {config_file}'],
-        output='screen',
+        output="screen",
     )
     # gazebo_server = IncludeLaunchDescription(
     #     PythonLaunchDescriptionSource([
@@ -150,16 +136,15 @@ def generate_launch_description():
 
     # Controller Manager Node
     controller_manager_node = Node(
-        package='controller_manager',
-        executable='ros2_control_node',
+        package="controller_manager",
+        executable="ros2_control_node",
         parameters=[
             # {'robot_description': robot_urdf},
             controller_config_file
-              # Load the controller configuration file
+            # Load the controller configuration file
         ],
-        output='screen'
+        output="screen",
     )
-
 
     velocity_controller = Node(
         package="controller_manager",
@@ -167,13 +152,11 @@ def generate_launch_description():
         arguments=["swerve_velocity_controller"],
     )
 
-
     steering_controller = Node(
         package="controller_manager",
         executable="spawner",
         arguments=["swerve_steering_controller"],
     )
-
 
     joint_broad_spawner = Node(
         package="controller_manager",
@@ -181,7 +164,6 @@ def generate_launch_description():
         arguments=["joint_state_broadcaster"],
     )
 
-    
     # # Load controllers using the controller_manager spawner
     # load_joint_state_broadcaster = ExecuteProcess(
     #     cmd=['ros2', 'control', 'load_controller', '--set-state', 'active', 'joint_state_broadcaster'],
@@ -215,21 +197,23 @@ def generate_launch_description():
     # ]
 
     # Return the complete launch description
-    return LaunchDescription([
-        robot_state_publisher_node,
-        joint_state_publisher_node,
-        # gazebo_server,
-        # gazebo_client,
-        # urdf_spawn_node,
-        controller_manager_node,
-        velocity_controller,
-        steering_controller,
-        joint_broad_spawner,
-        ignition_launch,
-        spawn_robot,
-        bridge_node,
-        # joint_broad_spawner  # Add the controller manager
-        # load_joint_state_broadcaster,
-        # *load_steering_controllers,
-        # *load_drive_controllers
-    ])
+    return LaunchDescription(
+        [
+            robot_state_publisher_node,
+            joint_state_publisher_node,
+            # gazebo_server,
+            # gazebo_client,
+            # urdf_spawn_node,
+            controller_manager_node,
+            velocity_controller,
+            steering_controller,
+            joint_broad_spawner,
+            ignition_launch,
+            spawn_robot,
+            bridge_node,
+            # joint_broad_spawner  # Add the controller manager
+            # load_joint_state_broadcaster,
+            # *load_steering_controllers,
+            # *load_drive_controllers
+        ]
+    )
