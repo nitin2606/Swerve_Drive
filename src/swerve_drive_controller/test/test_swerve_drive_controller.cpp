@@ -28,8 +28,10 @@
 #include "rclcpp/logging.hpp"
 #include "rclcpp_lifecycle/state.hpp"
 
-namespace swerve_drive_controller {
-void SwerveDriveControllerTest::SetUp() {
+namespace swerve_drive_controller
+{
+void SwerveDriveControllerTest::SetUp()
+{
   node_ = std::make_shared<rclcpp::Node>("test_node");
   RCLCPP_INFO(node_->get_logger(), "Test node initialized");
 
@@ -61,16 +63,17 @@ void SwerveDriveControllerTest::SetUp() {
 
   // Define expected interfaces
   command_interfaces_ = {"front_left_wheel_joint/velocity", "front_right_wheel_joint/velocity",
-                         "rear_left_wheel_joint/velocity",  "rear_right_wheel_joint/velocity",
-                         "front_left_axle_joint/position",  "front_right_axle_joint/position",
-                         "rear_left_axle_joint/position",   "rear_right_axle_joint/position"};
+    "rear_left_wheel_joint/velocity", "rear_right_wheel_joint/velocity",
+    "front_left_axle_joint/position", "front_right_axle_joint/position",
+    "rear_left_axle_joint/position", "rear_right_axle_joint/position"};
   state_interfaces_ = {"front_left_wheel_joint/velocity", "front_right_wheel_joint/velocity",
-                       "rear_left_wheel_joint/velocity",  "rear_right_wheel_joint/velocity",
-                       "front_left_axle_joint/position",  "front_right_axle_joint/position",
-                       "rear_left_axle_joint/position",   "rear_right_axle_joint/position"};
+    "rear_left_wheel_joint/velocity", "rear_right_wheel_joint/velocity",
+    "front_left_axle_joint/position", "front_right_axle_joint/position",
+    "rear_left_axle_joint/position", "rear_right_axle_joint/position"};
 }
 
-void SwerveDriveControllerTest::SetUpController() {
+void SwerveDriveControllerTest::SetUpController()
+{
   RCLCPP_INFO(node_->get_logger(), "Creating SwerveController instance");
   controller_ = std::make_shared<SwerveController>();
   if (!controller_) {
@@ -94,21 +97,22 @@ void SwerveDriveControllerTest::SetUpController() {
   RCLCPP_INFO(node_->get_logger(), "Controller node initialized");
 }
 
-void SwerveDriveControllerTest::SetUpInterfaces() {
+void SwerveDriveControllerTest::SetUpInterfaces()
+{
   command_values_.resize(command_interfaces_.size(), 0.0);
   state_values_.resize(state_interfaces_.size(), 0.0);
   command_interfaces_base_.reserve(command_interfaces_.size());
   state_interfaces_base_.reserve(state_interfaces_.size());
 
   for (size_t i = 0; i < command_interfaces_.size(); ++i) {
-    const auto& name = command_interfaces_[i];
+    const auto & name = command_interfaces_[i];
     auto interface_type = name.substr(name.find_last_of("/") + 1);
     command_interfaces_base_.emplace_back(hardware_interface::CommandInterface(
         name.substr(0, name.find_last_of("/")), interface_type, &command_values_[i]));
     command_interface_handles_.emplace_back(command_interfaces_base_.back());
   }
   for (size_t i = 0; i < state_interfaces_.size(); ++i) {
-    const auto& name = state_interfaces_[i];
+    const auto & name = state_interfaces_[i];
     auto interface_type = name.substr(name.find_last_of("/") + 1);
     state_interfaces_base_.emplace_back(hardware_interface::StateInterface(
         name.substr(0, name.find_last_of("/")), interface_type, &state_values_[i]));
@@ -118,8 +122,10 @@ void SwerveDriveControllerTest::SetUpInterfaces() {
                                  std::move(state_interface_handles_));
 }
 
-void SwerveDriveControllerTest::PublishTwistStamped(double linear_x, double linear_y,
-                                                    double angular_z) {
+void SwerveDriveControllerTest::PublishTwistStamped(
+  double linear_x, double linear_y,
+  double angular_z)
+{
   auto msg = std::make_shared<geometry_msgs::msg::TwistStamped>();
   msg->header.stamp = node_->now();
   msg->twist.linear.x = linear_x;
@@ -128,7 +134,8 @@ void SwerveDriveControllerTest::PublishTwistStamped(double linear_x, double line
   twist_stamped_pub_->publish(*msg);
 }
 
-void SwerveDriveControllerTest::PublishTwist(double linear_x, double linear_y, double angular_z) {
+void SwerveDriveControllerTest::PublishTwist(double linear_x, double linear_y, double angular_z)
+{
   auto msg = std::make_shared<geometry_msgs::msg::Twist>();
   msg->linear.x = linear_x;
   msg->linear.y = linear_y;
@@ -154,7 +161,7 @@ TEST_F(SwerveDriveControllerTest, test_command_interface_configuration) {
   auto config = controller_->command_interface_configuration();
   EXPECT_EQ(config.type, controller_interface::interface_configuration_type::INDIVIDUAL);
   EXPECT_EQ(config.names.size(), 8u);
-  for (const auto& name : command_interfaces_) {
+  for (const auto & name : command_interfaces_) {
     EXPECT_NE(std::find(config.names.begin(), config.names.end(), name), config.names.end())
         << "Expected command interface " << name << " not found";
   }
@@ -168,7 +175,7 @@ TEST_F(SwerveDriveControllerTest, test_state_interface_configuration) {
   auto config = controller_->state_interface_configuration();
   EXPECT_EQ(config.type, controller_interface::interface_configuration_type::INDIVIDUAL);
   EXPECT_EQ(config.names.size(), 8u);
-  for (const auto& name : state_interfaces_) {
+  for (const auto & name : state_interfaces_) {
     EXPECT_NE(std::find(config.names.begin(), config.names.end(), name), config.names.end())
         << "Expected state interface " << name << " not found";
   }
@@ -296,7 +303,7 @@ TEST_F(SwerveDriveControllerTest, test_update_with_velocity_command) {
 
   // Set up odometry subscriber
   odom_sub_ = node_->create_subscription<nav_msgs::msg::Odometry>(
-      "~/odom", 10, [this](const nav_msgs::msg::Odometry::SharedPtr msg) { last_odom_msg_ = msg; });
+      "~/odom", 10, [this](const nav_msgs::msg::Odometry::SharedPtr msg) {last_odom_msg_ = msg;});
 
   // Set up velocity publisher
   twist_stamped_pub_ = node_->create_publisher<geometry_msgs::msg::TwistStamped>(
@@ -371,7 +378,7 @@ TEST_F(SwerveDriveControllerTest, test_unstamped_velocity_command) {
   twist_pub_ = node_->create_publisher<geometry_msgs::msg::Twist>("~/cmd_vel_unstamped",
                                                                   rclcpp::SystemDefaultsQoS());
   odom_sub_ = node_->create_subscription<nav_msgs::msg::Odometry>(
-      "~/odom", 10, [this](const nav_msgs::msg::Odometry::SharedPtr msg) { last_odom_msg_ = msg; });
+      "~/odom", 10, [this](const nav_msgs::msg::Odometry::SharedPtr msg) {last_odom_msg_ = msg;});
 
   // Publish an unstamped velocity command (1 m/s lateral)
   PublishTwist(0.0, 1.0, 0.0);
@@ -396,7 +403,8 @@ TEST_F(SwerveDriveControllerTest, test_unstamped_velocity_command) {
 
 }  // namespace swerve_drive_controller
 
-int main(int argc, char** argv) {
+int main(int argc, char ** argv)
+{
   ::testing::InitGoogleTest(&argc, argv);
   rclcpp::init(argc, argv);
   int result = RUN_ALL_TESTS();

@@ -24,22 +24,23 @@
 
 TEST(TestLoadSwerveDriveController, load_controller) {
   std::shared_ptr<rclcpp::Executor> executor =
-      std::make_shared<rclcpp::executors::SingleThreadedExecutor>();
+    std::make_shared<rclcpp::executors::SingleThreadedExecutor>();
 
   controller_manager::ControllerManager cm(executor, ros2_control_test_assets::minimal_robot_urdf,
-                                           true, "test_controller_manager");
+    true, "test_controller_manager");
 
   const std::string test_file_path =
-      std::string(TEST_FILES_DIRECTORY) + "/config/test_swerve_drive_controller.yaml";
+    std::string(TEST_FILES_DIRECTORY) + "/config/test_swerve_drive_controller.yaml";
 
   cm.set_parameter({"test_swerve_drive_controller.params_file", test_file_path});
   cm.set_parameter(
-      {"test_swerve_drive_controller.type", "swerve_drive_controller/SwerveController"});
+    {"test_swerve_drive_controller.type", "swerve_drive_controller/SwerveController"});
 
   ASSERT_NE(cm.load_controller("test_swerve_drive_controller"), nullptr);
 }
 
-int main(int argc, char** argv) {
+int main(int argc, char ** argv)
+{
   ::testing::InitGoogleTest(&argc, argv);
   rclcpp::init(argc, argv);
   int result = RUN_ALL_TESTS();

@@ -1,4 +1,4 @@
-// Copyright 2025 (your name or organization)
+// Copyright 2025 ros2_control development team
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at
@@ -16,21 +16,25 @@
 
 #include <array>
 #include <cmath>
-#include <geometry_msgs/msg/twist.hpp>
 #include <iostream>
 #include <memory>
-#include <nav_msgs/msg/odometry.hpp>
-#include <tf2_msgs/msg/tf_message.hpp>
 #include <utility>
 #include <vector>
 
-namespace swerve_drive_controller {
+#include <geometry_msgs/msg/twist.hpp>
+#include <nav_msgs/msg/odometry.hpp>
+#include <tf2_msgs/msg/tf_message.hpp>
+
+
+namespace swerve_drive_controller
+{
 
 /**
  * @brief Struct to represent the kinematics command for a single wheel .
  */
 
-struct WheelCommand {
+struct WheelCommand
+{
   double steering_angle;  // Steering angle in radians
   double drive_velocity;  // Drive velocity in meters per second
 };
@@ -39,20 +43,22 @@ struct WheelCommand {
  * @brief Struct to represent the odometry state of the robot.
  */
 
-struct OdometryState {
+struct OdometryState
+{
   double x;      // X position in meters
   double y;      // Y position in meters
   double theta;  // Orientation (yaw) in radians
 };
 
-class SwerveDriveKinematics {
- public:
+class SwerveDriveKinematics
+{
+public:
   /**
    * @brief Constructor for the kinematics solver.
    * @param wheel_positions Array of (x, y) positions of the wheels relative to the robot's center.
    */
 
-  explicit SwerveDriveKinematics(const std::array<std::pair<double, double>, 4>& wheel_positions);
+  explicit SwerveDriveKinematics(const std::array<std::pair<double, double>, 4> & wheel_positions);
   /**
    * @brief Compute the wheel commands based on robot velocity commands.
    * @param linear_velocity_x Linear velocity in the x direction (m/s).
@@ -61,9 +67,8 @@ class SwerveDriveKinematics {
    * @return Array of wheel commands (steering angles and drive velocities).
    */
 
-  std::array<WheelCommand, 4> compute_wheel_commands(double linear_velocity_x,
-                                                     double linear_velocity_y,
-                                                     double angular_velocity_z);
+  std::array<WheelCommand, 4> compute_wheel_commands(
+    double linear_velocity_x, double linear_velocity_y, double angular_velocity_z);
 
   /**
    * @brief Update the odometry based on wheel velocities and elapsed time.
@@ -73,10 +78,11 @@ class SwerveDriveKinematics {
    * @return Updated odometry state.
    */
 
-  OdometryState update_odometry(const std::array<double, 4>& wheel_velocities_,
-                                const std::array<double, 4>& steering_angles_, double dt);
+  OdometryState update_odometry(
+    const std::array<double, 4> & wheel_velocities_, const std::array<double, 4> & steering_angles_,
+    double dt);
 
- private:
+private:
   std::array<std::pair<double, double>, 4> wheel_positions_;  // Wheel Positions
   OdometryState odometry_;                                    // Current Odometry of the robot
 

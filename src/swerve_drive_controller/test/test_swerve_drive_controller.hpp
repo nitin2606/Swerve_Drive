@@ -25,9 +25,10 @@
 #include "rclcpp/rclcpp.hpp"
 #include "swerve_drive_controller/swerve_drive_controller.hpp"
 
-namespace swerve_drive_controller {
+namespace swerve_drive_controller
+{
 class SwerveDriveControllerTest : public ::testing::Test {
- protected:
+protected:
   void SetUp() override;
   void SetUpController();
   void SetUpInterfaces();
