@@ -1,15 +1,15 @@
-#!/usr/bin/env python3
+#!/usr/bin/env python3.12
 
 import rclpy
 from rclpy.node import Node
-from geometry_msgs.msg import Twist
+from geometry_msgs.msg import TwistStamped
 from pynput import keyboard  # Install using: pip install pynput
 
 
 class SwerveKeyboardController(Node):
     def __init__(self):
         super().__init__("swerve_keyboard_controller")
-        self.publisher_ = self.create_publisher(Twist, "/cmd_vel", 10)
+        self.publisher_ = self.create_publisher(TwistStamped, "/cmd_vel", 10)
         self.timer = self.create_timer(0.1, self.timer_callback)  # 10 Hz
         self.linear_x = 0.0
         self.linear_y = 0.0
@@ -17,7 +17,7 @@ class SwerveKeyboardController(Node):
         self.speed_step = 0.1  # Increment/decrement step for velocity
         self.max_speed = 1.0  # Maximum speed limit
 
-        self.get_logger().info("Swerve Drive Keyboard Controller Started!")
+        self.get_logger().info("Swerve Drive Keyboard Controller (TwistStamped) Started!")
         self.get_logger().info("Use the following keys to control the robot:")
         self.get_logger().info("  W: Increase linear X velocity (forward)")
         self.get_logger().info("  S: Decrease linear X velocity (backward)")
@@ -56,12 +56,14 @@ class SwerveKeyboardController(Node):
         pass  # Do nothing on key release
 
     def timer_callback(self):
-        # Publish Twist message
-        twist_msg = Twist()
-        twist_msg.linear.x = self.linear_x
-        twist_msg.linear.y = self.linear_y
-        twist_msg.angular.z = self.angular_z
-        self.publisher_.publish(twist_msg)
+        # Publish TwistStamped message
+        twist_stamped = TwistStamped()
+        twist_stamped.header.stamp = self.get_clock().now().to_msg()
+        twist_stamped.header.frame_id = "odom"  # change if needed
+        twist_stamped.twist.linear.x = self.linear_x
+        twist_stamped.twist.linear.y = self.linear_y
+        twist_stamped.twist.angular.z = self.angular_z
+        self.publisher_.publish(twist_stamped)
 
 
 def main(args=None):

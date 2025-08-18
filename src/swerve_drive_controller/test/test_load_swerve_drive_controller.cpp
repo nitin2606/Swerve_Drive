@@ -1,4 +1,4 @@
-// Copyright 2025 (your name or organization)
+// Copyright 2025 ros2_control development team
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at
@@ -22,12 +22,13 @@
 #include "rclcpp/utilities.hpp"
 #include "ros2_control_test_assets/descriptions.hpp"
 
-TEST(TestLoadSwerveDriveController, load_controller) {
+TEST(TestLoadSwerveDriveController, load_controller)
+{
   std::shared_ptr<rclcpp::Executor> executor =
     std::make_shared<rclcpp::executors::SingleThreadedExecutor>();
 
-  controller_manager::ControllerManager cm(executor, ros2_control_test_assets::minimal_robot_urdf,
-    true, "test_controller_manager");
+  controller_manager::ControllerManager cm(
+    executor, ros2_control_test_assets::minimal_robot_urdf, true, "test_controller_manager");
 
   const std::string test_file_path =
     std::string(TEST_FILES_DIRECTORY) + "/config/test_swerve_drive_controller.yaml";

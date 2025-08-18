@@ -1,4 +1,4 @@
-// Copyright 2025 (your name or organization)
+// Copyright 2025 ros2_control development team
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at
@@ -14,7 +14,7 @@
 #ifndef TEST_SWERVE_DRIVE_CONTROLLER_HPP_
 #define TEST_SWERVE_DRIVE_CONTROLLER_HPP_
 
-#include <gtest/gtest.h>
+#include <gmock/gmock.h>
 
 #include <memory>
 #include <string>
@@ -27,7 +27,8 @@
 
 namespace swerve_drive_controller
 {
-class SwerveDriveControllerTest : public ::testing::Test {
+class SwerveDriveControllerTest : public ::testing::Test
+{
 protected:
   void SetUp() override;
   void SetUpController();
