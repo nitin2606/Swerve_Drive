@@ -91,7 +91,7 @@ CallbackReturn SwerveController::on_init()
   auto node = get_node();
   if (!node)
   {
-    RCLCPP_ERROR(rclcpp::get_logger("SwerveController"), "Node is null in on_init");
+    RCLCPP_ERROR(node->get_logger(), "Node is null in on_init");
     return controller_interface::CallbackReturn::ERROR;
   }
   try
@@ -138,7 +138,7 @@ InterfaceConfiguration SwerveController::state_interface_configuration() const
 
 CallbackReturn SwerveController::on_configure(const rclcpp_lifecycle::State & /*previous_state*/)
 {
-  auto logger = rclcpp::get_logger("SwerveController");
+  auto logger = get_node()->get_logger();
   try
   {
     wheel_params_.x_offset = params_.chassis_length;
@@ -217,8 +217,6 @@ CallbackReturn SwerveController::on_configure(const rclcpp_lifecycle::State & /*
     empty_twist.twist.angular.z = 0.0;
     received_velocity_msg_ptr_.writeFromNonRT(std::make_shared<TwistStamped>(empty_twist));
 
-    // if (params_.use_stamped_vel)
-    // {
     velocity_command_subscriber_ = get_node()->create_subscription<TwistStamped>(
       DEFAULT_COMMAND_TOPIC, rclcpp::SystemDefaultsQoS(),
       [this, logger](const std::shared_ptr<TwistStamped> msg) -> void
@@ -238,26 +236,7 @@ CallbackReturn SwerveController::on_configure(const rclcpp_lifecycle::State & /*
         }
         received_velocity_msg_ptr_.writeFromNonRT(std::move(msg));
       });
-    // }
-    // else
-    // {
-    //   velocity_command_unstamped_subscriber_ = get_node()->create_subscription<Twist>(
-    //     DEFAULT_COMMAND_UNSTAMPED_TOPIC, rclcpp::SystemDefaultsQoS(),
-    //     [this, logger](const std::shared_ptr<Twist> msg) -> void
-    //     {
-    //       if (!subscriber_is_active_)
-    //       {
-    //         RCLCPP_WARN(logger, "Can't accept new commands. subscriber is inactive");
-    //         return;
-    //       }
-    //       // Write fake header in the stored stamped command
-    //       const std::shared_ptr<TwistStamped> twist_stamped =
-    //         *(received_velocity_msg_ptr_.readFromRT());
-    //       twist_stamped->twist = *msg;
-    //       twist_stamped->header.stamp = get_node()->get_clock()->now();
-    //     });
-    // }
-
+   
     odometry_publisher_ = get_node()->create_publisher<nav_msgs::msg::Odometry>(
       DEFAULT_ODOMETRY_TOPIC, rclcpp::SystemDefaultsQoS());
 
@@ -281,7 +260,6 @@ CallbackReturn SwerveController::on_configure(const rclcpp_lifecycle::State & /*
     auto & odometry_message = realtime_odometry_publisher_->msg_;
     odometry_message.header.frame_id = odom_frame_id;
     odometry_message.child_frame_id = base_frame_id;
-    // publish_period_ = rclcpp::Duration::from_seconds(1.0 / params_.publishe_rate);
 
     odometry_message.twist =
       geometry_msgs::msg::TwistWithCovariance(rosidl_runtime_cpp::MessageInitialization::ALL);
@@ -300,10 +278,10 @@ CallbackReturn SwerveController::on_configure(const rclcpp_lifecycle::State & /*
       std::make_shared<realtime_tools::RealtimePublisher<tf2_msgs::msg::TFMessage>>(
         odometry_transform_publisher_);
 
-    auto & odometry_transform_message = realtime_odometry_transform_publisher_->msg_;
-    odometry_transform_message.transforms.resize(1);
-    odometry_transform_message.transforms.front().header.frame_id = odom_frame_id;
-    odometry_transform_message.transforms.front().child_frame_id = base_frame_id;
+    // auto & odometry_transform_message = realtime_odometry_transform_publisher_->msg_;
+    odometry_transform_message_.transforms.resize(1);
+    odometry_transform_message_.transforms.front().header.frame_id = odom_frame_id;
+    odometry_transform_message_.transforms.front().child_frame_id = base_frame_id;
 
     previous_update_timestamp_ = get_node()->get_clock()->now();
   }
@@ -318,7 +296,7 @@ CallbackReturn SwerveController::on_configure(const rclcpp_lifecycle::State & /*
 
 CallbackReturn SwerveController::on_activate(const rclcpp_lifecycle::State &)
 {
-  auto logger = rclcpp::get_logger("SwerveController");
+  auto logger = get_node()->get_logger();
 
   wheel_handles_.resize(4);
   for (std::size_t i = 0; i < 4; i++)
@@ -361,7 +339,6 @@ CallbackReturn SwerveController::on_activate(const rclcpp_lifecycle::State &)
 controller_interface::return_type SwerveController::update(
   const rclcpp::Time & time, const rclcpp::Duration & /*period*/)
 {
-  auto logger = rclcpp::get_logger("SwerveController");
 
   if (this->get_lifecycle_state().id() == State::PRIMARY_STATE_INACTIVE)
   {
@@ -461,19 +438,8 @@ controller_interface::return_type SwerveController::update(
   tf2::Quaternion orientation;
   orientation.setRPY(0.0, 0.0, odometry_.theta);
 
-  // try
-  // {
-  //   if (previous_publish_timestamp_ + publish_period_ < time)
-  //   {
-  //     previous_publish_timestamp_ += publish_period_;
-  //   }
-  // }
-  // catch (const std::runtime_error &)
-  // {
-  //   previous_publish_timestamp_ = time;
-  // }
-
-  if (realtime_odometry_publisher_ && realtime_odometry_publisher_->trylock())
+  // if (realtime_odometry_publisher_ && realtime_odometry_publisher_->trylock())
+  if(realtime_odometry_publisher_)
   {
     auto & odometry_message = realtime_odometry_publisher_->msg_;
     odometry_message.header.stamp = time;
@@ -483,12 +449,15 @@ controller_interface::return_type SwerveController::update(
     odometry_message.pose.pose.orientation.y = orientation.y();
     odometry_message.pose.pose.orientation.z = orientation.z();
     odometry_message.pose.pose.orientation.w = orientation.w();
-    realtime_odometry_publisher_->unlockAndPublish();
+    // realtime_odometry_publisher_->unlockAndPublish();
+    realtime_odometry_publisher_->tryPublish(odometry_message);
   }
 
-  if (realtime_odometry_transform_publisher_ && realtime_odometry_transform_publisher_->trylock())
+  // if (realtime_odometry_transform_publisher_ && realtime_odometry_transform_publisher_->trylock())
+  if (realtime_odometry_transform_publisher_)
   {
-    auto & transform = realtime_odometry_transform_publisher_->msg_.transforms.front();
+    // auto & transform = realtime_odometry_transform_publisher_->msg_.transforms.front();
+    auto & transform = odometry_transform_message_.transforms.front();
     transform.header.stamp = time;
     transform.transform.translation.x = odometry_.x;
     transform.transform.translation.y = odometry_.y;
@@ -497,7 +466,9 @@ controller_interface::return_type SwerveController::update(
     transform.transform.rotation.y = orientation.y();
     transform.transform.rotation.z = orientation.z();
     transform.transform.rotation.w = orientation.w();
-    realtime_odometry_transform_publisher_->unlockAndPublish();
+    // realtime_odometry_transform_publisher_->unlockAndPublish();
+    realtime_odometry_transform_publisher_->tryPublish(odometry_transform_message_);
+
   }
   previous_publish_timestamp_ = time;
   return controller_interface::return_type::OK;
