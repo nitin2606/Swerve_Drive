@@ -89,14 +89,15 @@ OdometryState SwerveDriveKinematics::update_odometry(
 
 double SwerveDriveKinematics::normalize_angle(double angle)
 {
-  while (angle > M_PI)
-  {
-    angle -= 2.0 * M_PI;
-  }
-  while (angle < -M_PI)
-  {
-    angle += 2.0 * M_PI;
-  }
-  return angle;
+  // while (angle > M_PI)
+  // {
+  //   angle -= 2.0 * M_PI;
+  // }
+  // while (angle < -M_PI)
+  // {
+  //   angle += 2.0 * M_PI;
+  // }
+  // return angle;
+  return angles::normalize_angle(angle);
 }
 }  // namespace swerve_drive_controller

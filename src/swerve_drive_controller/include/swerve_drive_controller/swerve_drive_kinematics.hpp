@@ -24,6 +24,7 @@
 #include <geometry_msgs/msg/twist.hpp>
 #include <nav_msgs/msg/odometry.hpp>
 #include <tf2_msgs/msg/tf_message.hpp>
+#include <angles/angles.h>
 
 namespace swerve_drive_controller
 {
