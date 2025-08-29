@@ -85,14 +85,6 @@ public:
 private:
   std::array<std::pair<double, double>, 4> wheel_positions_;  // Wheel Positions
   OdometryState odometry_;                                    // Current Odometry of the robot
-
-  /**
-   * @brief Normalize an angle to the range [-pi, pi].
-   * @param angle input in radians.
-   * @return Normalized angle in radians.
-   */
-
-  double normalize_angle(double angle);
 };
 }  // namespace swerve_drive_controller
 
