@@ -89,7 +89,6 @@ private:
 class SwerveController : public controller_interface::ControllerInterface
 {
   using TwistStamped = geometry_msgs::msg::TwistStamped;
-  // using Twist = geometry_msgs::msg::Twist;
 
 public:
   SwerveController();
@@ -116,13 +115,11 @@ public:
   CallbackReturn on_shutdown(const rclcpp_lifecycle::State & previous_state) override;
 
 private:
-  template<typename T>
+  template <typename T>
   std::optional<T> get_interface_object(
     std::vector<hardware_interface::LoanedCommandInterface> & command_interfaces,
     const std::vector<hardware_interface::LoanedStateInterface> & state_interfaces,
-    const std::string & name,
-    const std::string & interface_suffix,
-    const std::string & hw_if_type)
+    const std::string & name, const std::string & interface_suffix, const std::string & hw_if_type)
   {
     auto logger = rclcpp::get_logger("SwerveController");
 
@@ -139,14 +136,14 @@ private:
       [&expected_interface_name, &hw_if_type](const auto & interface)
       {
         return interface.get_name() == expected_interface_name &&
-              interface.get_interface_name() == hw_if_type;
+               interface.get_interface_name() == hw_if_type;
       });
 
     if (command_handle == command_interfaces.end())
     {
       RCLCPP_ERROR(
-        logger, "Unable to find command interface for: %s (expected: %s, type: %s)",
-        name.c_str(), expected_interface_name.c_str(), hw_if_type.c_str());
+        logger, "Unable to find command interface for: %s (expected: %s, type: %s)", name.c_str(),
+        expected_interface_name.c_str(), hw_if_type.c_str());
       return std::nullopt;
     }
     auto state_handle = std::find_if(
@@ -156,12 +153,12 @@ private:
         return interface.get_name() == expected_interface_name &&
                interface.get_interface_name() == hw_if_type;
       });
-  
+
     if (state_handle == state_interfaces.end())
     {
       RCLCPP_ERROR(
-        logger, "Unable to find state interface for: %s (expected: %s, type: %s)",
-        name.c_str(), expected_interface_name.c_str(), hw_if_type.c_str());
+        logger, "Unable to find state interface for: %s (expected: %s, type: %s)", name.c_str(),
+        expected_interface_name.c_str(), hw_if_type.c_str());
       return std::nullopt;
     }
     return T(std::ref(*command_handle), std::ref(*state_handle), name);
@@ -175,7 +172,7 @@ private:
     return get_interface_object<Wheel>(
       command_interfaces, state_interfaces, name, "/velocity", "velocity");
   }
-  
+
   inline std::optional<Axle> get_axle(
     std::vector<hardware_interface::LoanedCommandInterface> & command_interfaces,
     const std::vector<hardware_interface::LoanedStateInterface> & state_interfaces,
@@ -185,11 +182,7 @@ private:
       command_interfaces, state_interfaces, name, "/position", "position");
   }
 
-
 protected:
-  // std::optional<Wheel> get_wheel(const std::string & wheel_name);
-  // std::optional<Axle> get_axle(const std::string & axle_name);
-
   // Handles for four wheels and their axles
   std::vector<std::optional<Wheel>> wheel_handles_;
   std::vector<std::optional<Axle>> axle_handles_;
@@ -228,7 +221,6 @@ protected:
   std::shared_ptr<realtime_tools::RealtimePublisher<tf2_msgs::msg::TFMessage>>
     realtime_odometry_transform_publisher_ = nullptr;
   tf2_msgs::msg::TFMessage odometry_transform_message_;
-
 
   bool is_halted_ = false;
   bool reset();

@@ -42,11 +42,11 @@ constexpr auto NODE_SUCCESS = controller_interface::CallbackReturn::SUCCESS;
 constexpr auto NODE_ERROR = controller_interface::CallbackReturn::ERROR;
 
 std::vector<std::string> wheel_joint_names_ = {
-  "front_left_wheel_joint", "front_right_wheel_joint",
-  "rear_left_wheel_joint", "rear_right_wheel_joint"};
+  "front_left_wheel_joint", "front_right_wheel_joint", "rear_left_wheel_joint",
+  "rear_right_wheel_joint"};
 std::vector<std::string> steering_joint_names_ = {
-  "front_left_axle_joint", "front_right_axle_joint",
-  "rear_left_axle_joint", "rear_right_axle_joint"};
+  "front_left_axle_joint", "front_right_axle_joint", "rear_left_axle_joint",
+  "rear_right_axle_joint"};
 
 class TestableSwerveDriveController : public SwerveController
 {
@@ -64,7 +64,7 @@ class TestableSwerveDriveController : public SwerveController
   FRIEND_TEST(SwerveDriveControllerTest, activate_succeeds_with_resources_assigned);
   FRIEND_TEST(SwerveDriveControllerTest, deactivate_then_activate);
   FRIEND_TEST(SwerveDriveControllerTest, command_with_zero_timestamp_is_accepted_with_warning);
-  
+
 public:
   std::shared_ptr<realtime_tools::RealtimePublisher<nav_msgs::msg::Odometry>>
   get_realtime_odometry_publisher() const
@@ -99,36 +99,29 @@ public:
     controller_ = std::make_unique<CtrlType>();
 
     cmd_vel_publisher_node_ = std::make_shared<rclcpp::Node>("cmd_vel_publisher");
-    cmd_vel_publisher_ = 
+    cmd_vel_publisher_ =
       cmd_vel_publisher_node_->create_publisher<geometry_msgs::msg::TwistStamped>(
         "/test_swerve_drive_controller/cmd_vel", rclcpp::SystemDefaultsQoS());
-    
+
     odom_subscriber_node_ = std::make_shared<rclcpp::Node>("odom_subscriber");
     odom_sub_ = odom_subscriber_node_->create_subscription<nav_msgs::msg::Odometry>(
       "/test_swerve_drive_controller/odom", 10,
-      [this](const nav_msgs::msg::Odometry::SharedPtr msg) { last_odom_msg_ = msg; }); 
+      [this](const nav_msgs::msg::Odometry::SharedPtr msg) { last_odom_msg_ = msg; });
   }
 
-  static void SetUpTestCase()
-  {
-    rclcpp::init(0, nullptr);
-  }
+  static void SetUpTestCase() { rclcpp::init(0, nullptr); }
 
-  static void TearDownTestCase()
-  {
-    rclcpp::shutdown();
-  }
+  static void TearDownTestCase() { rclcpp::shutdown(); }
 
 protected:
-
   void publish_twist(double linear_x = 1.0, double linear_y = 1.0, double angular = 1.0)
   {
     publish_twist_timestamped(
-      cmd_vel_publisher_node_->get_clock()->now(), linear_x, linear_y, angular);   
+      cmd_vel_publisher_node_->get_clock()->now(), linear_x, linear_y, angular);
   }
-  
+
   void publish_twist_timestamped(
-    const rclcpp::Time & stamp, const double & twist_linear_x = 1.0, 
+    const rclcpp::Time & stamp, const double & twist_linear_x = 1.0,
     const double & twist_linear_y = 1.0, const double & twist_angular_z = 1.0)
   {
     const char * topic_name = cmd_vel_publisher_->get_topic_name();
@@ -137,7 +130,7 @@ protected:
     {
       if (wait_count >= 5)
       {
-        auto error_msg = 
+        auto error_msg =
           std::string("publishing to ") + topic_name + " but no node subscribes to it";
         throw std::runtime_error(error_msg);
       }
@@ -211,32 +204,47 @@ protected:
     controller_->assign_interfaces(std::move(command_ifs), std::move(state_ifs));
   }
 
-
   controller_interface::return_type InitController(
     const std::vector<std::string> & wheel_joints = wheel_joint_names_,
     const std::vector<std::string> & steering_joints = steering_joint_names_,
-    const std::vector<rclcpp::Parameter> & parameters = {},
-    const std::string & ns = "")
+    const std::vector<rclcpp::Parameter> & parameters = {}, const std::string & ns = "")
   {
     auto node_options = rclcpp::NodeOptions();
     std::vector<rclcpp::Parameter> parameter_overrides;
 
     if (wheel_joints.size() > 0)
+    {
       parameter_overrides.push_back(rclcpp::Parameter("front_left_wheel_joint", wheel_joints[0]));
+    }
     if (wheel_joints.size() > 1)
+    {
       parameter_overrides.push_back(rclcpp::Parameter("front_right_wheel_joint", wheel_joints[1]));
+    }
     if (wheel_joints.size() > 2)
+    {
       parameter_overrides.push_back(rclcpp::Parameter("rear_left_wheel_joint", wheel_joints[2]));
+    }
     if (wheel_joints.size() > 3)
+    {
       parameter_overrides.push_back(rclcpp::Parameter("rear_right_wheel_joint", wheel_joints[3]));
+    }
     if (steering_joints.size() > 0)
+    {
       parameter_overrides.push_back(rclcpp::Parameter("front_left_axle_joint", steering_joints[0]));
+    }
     if (steering_joints.size() > 1)
-      parameter_overrides.push_back(rclcpp::Parameter("front_right_axle_joint", steering_joints[1]));
+    {
+      parameter_overrides.push_back(
+        rclcpp::Parameter("front_right_axle_joint", steering_joints[1]));
+    }
     if (steering_joints.size() > 2)
+    {
       parameter_overrides.push_back(rclcpp::Parameter("rear_left_axle_joint", steering_joints[2]));
+    }
     if (steering_joints.size() > 3)
+    {
       parameter_overrides.push_back(rclcpp::Parameter("rear_right_axle_joint", steering_joints[3]));
+    }
 
     if (wheel_joints.size() >= 4 && steering_joints.size() >= 4)
     {
@@ -244,16 +252,13 @@ protected:
         rclcpp::Parameter("chassis_length", rclcpp::ParameterValue(0.2)));
       parameter_overrides.push_back(
         rclcpp::Parameter("chassis_width", rclcpp::ParameterValue(0.35)));
-      parameter_overrides.push_back(
-        rclcpp::Parameter("wheel_radius", rclcpp::ParameterValue(0.1)));
+      parameter_overrides.push_back(rclcpp::Parameter("wheel_radius", rclcpp::ParameterValue(0.1)));
       parameter_overrides.push_back(
         rclcpp::Parameter("cmd_vel_timeout", rclcpp::ParameterValue(0.5)));
-      parameter_overrides.push_back(
-        rclcpp::Parameter("odom", rclcpp::ParameterValue("odom")));
+      parameter_overrides.push_back(rclcpp::Parameter("odom", rclcpp::ParameterValue("odom")));
       parameter_overrides.push_back(
         rclcpp::Parameter("base_footprint", rclcpp::ParameterValue("base_footprint")));
-      parameter_overrides.push_back(
-        rclcpp::Parameter("open_loop", rclcpp::ParameterValue(false)));
+      parameter_overrides.push_back(rclcpp::Parameter("open_loop", rclcpp::ParameterValue(false)));
       parameter_overrides.push_back(
         rclcpp::Parameter("center_of_rotation", rclcpp::ParameterValue(0.1)));
     }

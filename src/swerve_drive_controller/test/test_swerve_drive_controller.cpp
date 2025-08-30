@@ -19,12 +19,10 @@
 
 using lifecycle_msgs::msg::State;
 
-
 namespace swerve_drive_controller
 {
 
-class SwerveDriveControllerTest
-: public SwerveDriveControllerFixture<TestableSwerveDriveController>
+class SwerveDriveControllerTest : public SwerveDriveControllerFixture<TestableSwerveDriveController>
 {
 };
 
@@ -32,14 +30,13 @@ TEST_F(SwerveDriveControllerTest, init_fails_without_parameters)
 {
   const auto ret =
     controller_->init(controller_name_, urdf_, 0, "", controller_->define_custom_node_options());
-  ASSERT_EQ(ret, controller_interface::return_type::OK); 
+  ASSERT_EQ(ret, controller_interface::return_type::OK);
 }
 
 TEST_F(SwerveDriveControllerTest, configure_fails_with_missing_wheels)
 {
   std::vector<std::string> wheel_joints = {"front_left_wheel_joint", "front_right_wheel_joint"};
-  std::vector<std::string> steering_joints = {
-    "front_left_axle_joint", "front_right_axle_joint"};
+  std::vector<std::string> steering_joints = {"front_left_axle_joint", "front_right_axle_joint"};
   ASSERT_EQ(InitController(wheel_joints, steering_joints), controller_interface::return_type::OK);
 
   ASSERT_EQ(controller_->on_configure(rclcpp_lifecycle::State()), NODE_ERROR);
@@ -52,28 +49,33 @@ TEST_F(SwerveDriveControllerTest, configure_succeeds_no_namespace)
   ASSERT_EQ(controller_->on_configure(rclcpp_lifecycle::State()), NODE_SUCCESS);
 
   auto command_interfaces = controller_->command_interface_configuration();
-  ASSERT_EQ(command_interfaces.names.size(), wheel_joint_names_.size() + steering_joint_names_.size());
+  ASSERT_EQ(
+    command_interfaces.names.size(), wheel_joint_names_.size() + steering_joint_names_.size());
   for (size_t i = 0; i < wheel_joint_names_.size(); ++i)
   {
     EXPECT_EQ(command_interfaces.names[i], wheel_joint_names_[i] + "/" + HW_IF_VELOCITY);
   }
   for (size_t i = 0; i < steering_joint_names_.size(); ++i)
   {
-    EXPECT_EQ(command_interfaces.names[i + wheel_joint_names_.size()],
-              steering_joint_names_[i] + "/" + HW_IF_POSITION);
+    EXPECT_EQ(
+      command_interfaces.names[i + wheel_joint_names_.size()],
+      steering_joint_names_[i] + "/" + HW_IF_POSITION);
   }
-  EXPECT_EQ(command_interfaces.type, controller_interface::interface_configuration_type::INDIVIDUAL);
+  EXPECT_EQ(
+    command_interfaces.type, controller_interface::interface_configuration_type::INDIVIDUAL);
 
   auto state_interfaces = controller_->state_interface_configuration();
-  ASSERT_EQ(state_interfaces.names.size(), wheel_joint_names_.size() + steering_joint_names_.size());
+  ASSERT_EQ(
+    state_interfaces.names.size(), wheel_joint_names_.size() + steering_joint_names_.size());
   for (size_t i = 0; i < wheel_joint_names_.size(); ++i)
   {
     EXPECT_EQ(state_interfaces.names[i], wheel_joint_names_[i] + "/" + HW_IF_VELOCITY);
   }
   for (size_t i = 0; i < steering_joint_names_.size(); ++i)
   {
-    EXPECT_EQ(state_interfaces.names[i + wheel_joint_names_.size()],
-              steering_joint_names_[i] + "/" + HW_IF_POSITION);
+    EXPECT_EQ(
+      state_interfaces.names[i + wheel_joint_names_.size()],
+      steering_joint_names_[i] + "/" + HW_IF_POSITION);
   }
   EXPECT_EQ(state_interfaces.type, controller_interface::interface_configuration_type::INDIVIDUAL);
 }
@@ -81,8 +83,9 @@ TEST_F(SwerveDriveControllerTest, configure_succeeds_no_namespace)
 TEST_F(SwerveDriveControllerTest, configure_succeeds_with_namespace)
 {
   std::string test_namespace = "/test_namespace";
-  ASSERT_EQ(InitController(wheel_joint_names_, steering_joint_names_, {}, test_namespace),
-            controller_interface::return_type::OK);
+  ASSERT_EQ(
+    InitController(wheel_joint_names_, steering_joint_names_, {}, test_namespace),
+    controller_interface::return_type::OK);
 
   ASSERT_EQ(controller_->on_configure(rclcpp_lifecycle::State()), NODE_SUCCESS);
 }
@@ -271,7 +274,7 @@ TEST_F(SwerveDriveControllerTest, deactivate_then_activate)
 
   waitForSetup();
 
-  publish_twist(1.0, 0.0, 0.0); 
+  publish_twist(1.0, 0.0, 0.0);
   controller_->wait_for_twist(executor);
 
   ASSERT_EQ(
@@ -286,8 +289,9 @@ TEST_F(SwerveDriveControllerTest, deactivate_then_activate)
   }
   for (size_t i = 0; i < steering_pos_cmds_.size(); i++)
   {
-    EXPECT_DOUBLE_EQ(command_itfs_[i + wheel_vel_cmds_.size()].get_optional().value(),
-                     expected_steering_pos_cmds[i]);
+    EXPECT_DOUBLE_EQ(
+      command_itfs_[i + wheel_vel_cmds_.size()].get_optional().value(),
+      expected_steering_pos_cmds[i]);
   }
 
   std::this_thread::sleep_for(std::chrono::milliseconds(300));
@@ -311,7 +315,7 @@ TEST_F(SwerveDriveControllerTest, deactivate_then_activate)
     EXPECT_EQ(command_itfs_[i].get_optional().value(), 0.0);
   }
 
-  publish_twist(1.0, 0.0, 0.0); // Forward motion
+  publish_twist(1.0, 0.0, 0.0);  // Forward motion
   controller_->wait_for_twist(executor);
 
   ASSERT_EQ(
@@ -323,8 +327,9 @@ TEST_F(SwerveDriveControllerTest, deactivate_then_activate)
   }
   for (size_t i = 0; i < steering_pos_cmds_.size(); i++)
   {
-    EXPECT_DOUBLE_EQ(command_itfs_[i + wheel_vel_cmds_.size()].get_optional().value(),
-                     expected_steering_pos_cmds[i]);
+    EXPECT_DOUBLE_EQ(
+      command_itfs_[i + wheel_vel_cmds_.size()].get_optional().value(),
+      expected_steering_pos_cmds[i]);
   }
 
   // Deactivate and cleanup
@@ -367,8 +372,9 @@ TEST_F(SwerveDriveControllerTest, command_with_zero_timestamp_is_accepted_with_w
   }
   for (size_t i = 0; i < steering_pos_cmds_.size(); i++)
   {
-    EXPECT_DOUBLE_EQ(command_itfs_[i + wheel_vel_cmds_.size()].get_optional().value(),
-                     expected_steering_pos_cmds[i]);
+    EXPECT_DOUBLE_EQ(
+      command_itfs_[i + wheel_vel_cmds_.size()].get_optional().value(),
+      expected_steering_pos_cmds[i]);
   }
 
   std::this_thread::sleep_for(std::chrono::milliseconds(300));
@@ -387,4 +393,4 @@ int main(int argc, char ** argv)
   rclcpp::shutdown();
   return result;
 }
-} // namespace swerve_drive_controller
+}  // namespace swerve_drive_controller
