@@ -22,6 +22,7 @@
 #include <queue>
 #include <string>
 #include <vector>
+#include <array>
 
 #include <hardware_interface/loaned_command_interface.hpp>
 #include "controller_interface/controller_interface.hpp"
@@ -191,14 +192,6 @@ protected:
 
   std::shared_ptr<ParamListener> param_listener_;
   Params params_;
-
-  struct WheelParams
-  {
-    double x_offset = 0.0;  // Chassis Center to Axle Center
-    double y_offset = 0.0;  // Axle Center to Wheel Center
-    double radius = 0.0;    // Assumed to be the same for all wheels
-    double center_of_rotation = 0.0;
-  } wheel_params_;
 
   SwerveDriveKinematics swerveDriveKinematics_;
   std::queue<TwistStamped> previous_commands_;  // last two commands

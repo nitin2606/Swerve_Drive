@@ -3,3 +3,5 @@
 /install
 /log
 /swerve_venv
+/.venv
+/commands.txt
