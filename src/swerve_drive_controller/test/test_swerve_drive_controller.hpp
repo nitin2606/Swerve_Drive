@@ -248,10 +248,8 @@ protected:
 
     if (wheel_joints.size() >= 4 && steering_joints.size() >= 4)
     {
-      parameter_overrides.push_back(
-        rclcpp::Parameter("wheelbase", rclcpp::ParameterValue(0.85)));
-      parameter_overrides.push_back(
-        rclcpp::Parameter("trackwidth", rclcpp::ParameterValue(0.75)));
+      parameter_overrides.push_back(rclcpp::Parameter("wheelbase", rclcpp::ParameterValue(0.85)));
+      parameter_overrides.push_back(rclcpp::Parameter("trackwidth", rclcpp::ParameterValue(0.75)));
       parameter_overrides.push_back(rclcpp::Parameter("wheel_radius", rclcpp::ParameterValue(0.1)));
       parameter_overrides.push_back(
         rclcpp::Parameter("cmd_vel_timeout", rclcpp::ParameterValue(0.5)));

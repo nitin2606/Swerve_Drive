@@ -94,8 +94,8 @@ CallbackReturn SwerveController::on_init()
     param_listener_ = std::make_shared<ParamListener>(get_node());
     params_ = param_listener_->get_params();
 
-    swerveDriveKinematics_.calculate_wheel_position(params_.wheelbase,
-      params_.trackwidth, params_.offset[0], params_.offset[1]);    
+    swerveDriveKinematics_.calculate_wheel_position(
+      params_.wheelbase, params_.trackwidth, params_.offset[0], params_.offset[1]);
   }
   catch (const std::exception & e)
   {

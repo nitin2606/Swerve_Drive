@@ -56,7 +56,7 @@ public:
   /// @brief Default Constructor
   SwerveDriveKinematics();
 
-   /**
+  /**
    * @brief Sets necessary params required for kinematics calculation.
    * @param wheel_base Distance between front and rear axles (meters).
    * @param track_width Distance between left and right wheels (meters).
@@ -64,8 +64,8 @@ public:
    * @param y_offset Optional global y offset of wheel positions.
    * @attention order enforced as: front_left, front_right, rear_left, rear_right
    */
-  void calculate_wheel_position(double wheel_base, double track_width,
-     double x_offset = 0.0, double y_offset = 0.0);
+  void calculate_wheel_position(
+    double wheel_base, double track_width, double x_offset = 0.0, double y_offset = 0.0);
 
   /**
    * @brief Compute the wheel commands based on robot velocity commands.

@@ -22,7 +22,6 @@
 #include <queue>
 #include <string>
 #include <vector>
-#include <array>
 
 #include <hardware_interface/loaned_command_interface.hpp>
 #include "controller_interface/controller_interface.hpp"
