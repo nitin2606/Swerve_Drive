@@ -331,7 +331,6 @@ controller_interface::return_type SwerveController::update(
 {
   auto logger = get_node()->get_logger();
 
-  RCLCPP_INFO(logger, "Updated Kinematics");
   if (this->get_lifecycle_state().id() == State::PRIMARY_STATE_INACTIVE)
   {
     if (!is_halted_)
@@ -372,13 +371,13 @@ controller_interface::return_type SwerveController::update(
   double & angular_cmd = command.twist.angular.z;
 
   auto wheel_command =
-    swerveDriveKinematics_.compute_wheel_commands(linear_x_cmd, linear_y_cmd, angular_cmd);
+    swerveDriveKinematics_.compute_wheel_commands(linear_x_cmd, linear_y_cmd, angular_cmd, params_.wheel_radius);
 
   std::vector<std::tuple<WheelCommand &, double, std::string>> wheel_data = {
-    {wheel_command[0], params_.front_left_velocity_threshold, "front_left_wheel"},
-    {wheel_command[1], params_.front_right_velocity_threshold, "front_right_wheel"},
-    {wheel_command[2], params_.rear_left_velocity_threshold, "rear_left_wheel"},
-    {wheel_command[3], params_.rear_right_velocity_threshold, "rear_right_wheel"}};
+    {wheel_command[0], params_.front_left_velocity_threshold / params_.wheel_radius, "front_left_wheel"},
+    {wheel_command[1], params_.front_right_velocity_threshold / params_.wheel_radius, "front_right_wheel"},
+    {wheel_command[2], params_.rear_left_velocity_threshold / params_.wheel_radius, "rear_left_wheel"},
+    {wheel_command[3], params_.rear_right_velocity_threshold / params_.wheel_radius, "rear_right_wheel"}};
 
   for (const auto & [wheel_command_, threshold, label] : wheel_data)
   {
@@ -397,7 +396,9 @@ controller_interface::return_type SwerveController::update(
         wheel_joint_names[i]);
     }
     axle_handles_[i]->set_position(wheel_command[i].steering_angle);
-    wheel_handles_[i]->set_velocity(wheel_command[i].drive_velocity);
+    wheel_handles_[i]->set_velocity(wheel_command[i].drive_angular_velocity);
+    RCLCPP_INFO(logger, "[COMMAND INTERFACE] Wheel Command: %f", wheel_command[i].drive_angular_velocity);
+
   }
 
   const auto update_dt = current_time - previous_update_timestamp_;
@@ -417,12 +418,15 @@ controller_interface::return_type SwerveController::update(
     }
     else
     {
-      velocity_array[i] = wheel_handles_[i]->get_feedback();
+      velocity_array[i] = wheel_handles_[i]->get_feedback() * params_.wheel_radius;
       steering_angle_array[i] = axle_handles_[i]->get_feedback();
+      // RCLCPP_INFO(logger, "[HARDWARE INTERFACE] Wheel Velocity: %f", wheel_handles_[i]->get_feedback());
     }
   }
   odometry_ = swerveDriveKinematics_.update_odometry(
     velocity_array, steering_angle_array, update_dt.seconds());
+  
+  RCLCPP_INFO(logger, "Linear X Pos: %f  Radius: %f,  Wheelbase: %f, TrackWidth: %f", odometry_.x, params_.wheel_radius, params_.wheelbase, params_.trackwidth);
 
   tf2::Quaternion orientation;
   orientation.setRPY(0.0, 0.0, odometry_.theta);

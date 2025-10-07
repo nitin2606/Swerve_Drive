@@ -216,6 +216,7 @@ hardware_interface::return_type swerve_drive_hardware::SwerveDriveHardware::read
     if (vel_i > 0) {
       auto vel = command_velocities_[vel_i - 1];
       state_velocities_[i] = vel;
+      RCLCPP_INFO(rclcpp::get_logger("Hardware"), "[Hardware] Got Velocity Command: %f", state_velocities_[i]);
       // state_positions_[i] = state_positions_[i] + dt * vel;
       state_positions_[i] = 0.0;
 

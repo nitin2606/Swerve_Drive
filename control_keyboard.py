@@ -35,8 +35,10 @@ class SwerveKeyboardController(Node):
         try:
             if key.char == "w":  # Increase linear X velocity
                 self.linear_x = min(self.linear_x + self.speed_step, self.max_speed)
+                print(f'Linear_X Speed: {self.linear_x}')
             elif key.char == "s":  # Decrease linear X velocity
                 self.linear_x = max(self.linear_x - self.speed_step, -self.max_speed)
+                print(f'Linear_X Speed: {self.linear_x}')
             elif key.char == "a":  # Increase linear Y velocity
                 self.linear_y = min(self.linear_y + self.speed_step, self.max_speed)
             elif key.char == "d":  # Decrease linear Y velocity

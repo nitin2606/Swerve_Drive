@@ -21,8 +21,8 @@ swerve_drive_controller:
     rear_left_axle_joint: "joint_steering_left_rear"
     rear_right_axle_joint: "joint_steering_right_rear"
 
-    wheelbase: 0.85
-    trackwidth: 0.75
+    wheelbase: 0.35
+    trackwidth: 0.2
     wheel_radius: 0.04
     center_of_rotation: [0.0, 0.0]
     offset: [0.0, 0.0]
