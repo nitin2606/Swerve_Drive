@@ -318,6 +318,7 @@ CallbackReturn SwerveController::on_activate(const rclcpp_lifecycle::State &)
       return CallbackReturn::ERROR;
     }
     axle_handles_[i]->set_position(0.0);
+    previous_steering_angles_[i] = axle_handles_[i]->get_feedback();
   }
 
   is_halted_ = false;
@@ -395,10 +396,21 @@ controller_interface::return_type SwerveController::update(
         "Axle or Wheel handle is nullptr for: " + axle_joint_names[i] + " / " +
         wheel_joint_names[i]);
     }
-    axle_handles_[i]->set_position(wheel_command[i].steering_angle);
-    wheel_handles_[i]->set_velocity(wheel_command[i].drive_angular_velocity);
-    RCLCPP_INFO(logger, "[COMMAND INTERFACE] Wheel Command: %f", wheel_command[i].drive_angular_velocity);
 
+    const bool is_stop = (std::fabs(linear_x_cmd) < EPS) &&
+                       (std::fabs(linear_y_cmd) < EPS) &&
+                       (std::fabs(angular_cmd) < EPS);
+
+    if (is_stop)
+    {
+      axle_handles_[i]->set_position(previous_steering_angles_[i]);
+    }
+    else
+    {
+      axle_handles_[i]->set_position(wheel_command[i].steering_angle);
+      previous_steering_angles_[i] = wheel_command[i].steering_angle;
+    }
+    wheel_handles_[i]->set_velocity(wheel_command[i].drive_angular_velocity);
   }
 
   const auto update_dt = current_time - previous_update_timestamp_;
@@ -420,14 +432,11 @@ controller_interface::return_type SwerveController::update(
     {
       velocity_array[i] = wheel_handles_[i]->get_feedback() * params_.wheel_radius;
       steering_angle_array[i] = axle_handles_[i]->get_feedback();
-      // RCLCPP_INFO(logger, "[HARDWARE INTERFACE] Wheel Velocity: %f", wheel_handles_[i]->get_feedback());
     }
   }
   odometry_ = swerveDriveKinematics_.update_odometry(
     velocity_array, steering_angle_array, update_dt.seconds());
   
-  RCLCPP_INFO(logger, "Linear X Pos: %f  Radius: %f,  Wheelbase: %f, TrackWidth: %f", odometry_.x, params_.wheel_radius, params_.wheelbase, params_.trackwidth);
-
   tf2::Quaternion orientation;
   orientation.setRPY(0.0, 0.0, odometry_.theta);
 
