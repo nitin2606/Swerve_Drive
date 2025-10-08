@@ -36,7 +36,8 @@ std::array<WheelCommand, 4> SwerveDriveKinematics::compute_wheel_commands(
 {
   std::array<WheelCommand, 4> wheel_commands;
 
-  if (wheel_radius <= 0.0){
+  if (wheel_radius <= 0.0)
+  {
     std::cerr << "invalid wheel_radius <= 0.0\n";
     // fallthrough: compute but set angular velocities to 0 to avoid div-by-zero
   }
@@ -53,10 +54,13 @@ std::array<WheelCommand, 4> SwerveDriveKinematics::compute_wheel_commands(
 
     wheel_commands[i].drive_velocity = linear_speed;
 
-    if (wheel_radius > 0.0) {
-      wheel_commands[i].drive_angular_velocity = linear_speed / wheel_radius; // rad/s
-    } else {
-      wheel_commands[i].drive_angular_velocity = 0.0; // safe fallback
+    if (wheel_radius > 0.0)
+    {
+      wheel_commands[i].drive_angular_velocity = linear_speed / wheel_radius;  // rad/s
+    }
+    else
+    {
+      wheel_commands[i].drive_angular_velocity = 0.0;  // safe fallback
     }
 
     wheel_commands[i].steering_angle = steering;

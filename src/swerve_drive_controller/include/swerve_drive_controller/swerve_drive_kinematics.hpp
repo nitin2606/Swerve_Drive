@@ -35,8 +35,8 @@ namespace swerve_drive_controller
 
 struct WheelCommand
 {
-  double steering_angle;  // Steering angle in radians
-  double drive_velocity;  // Drive velocity in meters per second (m/s)
+  double steering_angle;          // Steering angle in radians
+  double drive_velocity;          // Drive velocity in meters per second (m/s)
   double drive_angular_velocity;  // Drive angular velocity in radians per second (rad/s)
 };
 
@@ -78,7 +78,8 @@ public:
    *         and drive angular velocities (rad/s)).
    */
   std::array<WheelCommand, 4> compute_wheel_commands(
-    double linear_velocity_x, double linear_velocity_y, double angular_velocity_z, double wheel_radius);
+    double linear_velocity_x, double linear_velocity_y, double angular_velocity_z,
+    double wheel_radius);
 
   /**
    * @brief Update the odometry based on wheel velocities and elapsed time.

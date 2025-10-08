@@ -371,14 +371,18 @@ controller_interface::return_type SwerveController::update(
   double & linear_y_cmd = command.twist.linear.y;
   double & angular_cmd = command.twist.angular.z;
 
-  auto wheel_command =
-    swerveDriveKinematics_.compute_wheel_commands(linear_x_cmd, linear_y_cmd, angular_cmd, params_.wheel_radius);
+  auto wheel_command = swerveDriveKinematics_.compute_wheel_commands(
+    linear_x_cmd, linear_y_cmd, angular_cmd, params_.wheel_radius);
 
   std::vector<std::tuple<WheelCommand &, double, std::string>> wheel_data = {
-    {wheel_command[0], params_.front_left_velocity_threshold / params_.wheel_radius, "front_left_wheel"},
-    {wheel_command[1], params_.front_right_velocity_threshold / params_.wheel_radius, "front_right_wheel"},
-    {wheel_command[2], params_.rear_left_velocity_threshold / params_.wheel_radius, "rear_left_wheel"},
-    {wheel_command[3], params_.rear_right_velocity_threshold / params_.wheel_radius, "rear_right_wheel"}};
+    {wheel_command[0], params_.front_left_velocity_threshold / params_.wheel_radius,
+     "front_left_wheel"},
+    {wheel_command[1], params_.front_right_velocity_threshold / params_.wheel_radius,
+     "front_right_wheel"},
+    {wheel_command[2], params_.rear_left_velocity_threshold / params_.wheel_radius,
+     "rear_left_wheel"},
+    {wheel_command[3], params_.rear_right_velocity_threshold / params_.wheel_radius,
+     "rear_right_wheel"}};
 
   for (const auto & [wheel_command_, threshold, label] : wheel_data)
   {
@@ -397,9 +401,8 @@ controller_interface::return_type SwerveController::update(
         wheel_joint_names[i]);
     }
 
-    const bool is_stop = (std::fabs(linear_x_cmd) < EPS) &&
-                       (std::fabs(linear_y_cmd) < EPS) &&
-                       (std::fabs(angular_cmd) < EPS);
+    const bool is_stop = (std::fabs(linear_x_cmd) < EPS) && (std::fabs(linear_y_cmd) < EPS) &&
+                         (std::fabs(angular_cmd) < EPS);
 
     if (is_stop)
     {
@@ -436,7 +439,7 @@ controller_interface::return_type SwerveController::update(
   }
   odometry_ = swerveDriveKinematics_.update_odometry(
     velocity_array, steering_angle_array, update_dt.seconds());
-  
+
   tf2::Quaternion orientation;
   orientation.setRPY(0.0, 0.0, odometry_.theta);
 
