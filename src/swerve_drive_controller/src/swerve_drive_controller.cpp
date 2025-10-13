@@ -369,6 +369,12 @@ controller_interface::return_type SwerveController::update_and_write_commands(
 {
   auto logger = get_node()->get_logger();
 
+  // If handles are empty (controller deactivated), return early
+  if (wheel_handles_.empty() || axle_handles_.empty())
+  {
+    return controller_interface::return_type::OK;
+  }
+
   double linear_x_cmd = reference_interfaces_[0];
   double linear_y_cmd = reference_interfaces_[1];
   double angular_cmd = reference_interfaces_[2];
@@ -462,7 +468,7 @@ controller_interface::return_type SwerveController::update_and_write_commands(
     odometry_message.twist.twist.linear.x = odometry_.vx;
     odometry_message.twist.twist.linear.y = odometry_.vy;
     odometry_message.twist.twist.angular.z = odometry_.wz;
-    realtime_odometry_publisher_->tryPublish(odometry_message);
+    realtime_odometry_publisher_->try_publish(odometry_message);
   }
 
   if (realtime_odometry_transform_publisher_)
@@ -476,7 +482,7 @@ controller_interface::return_type SwerveController::update_and_write_commands(
     transform.transform.rotation.y = orientation.y();
     transform.transform.rotation.z = orientation.z();
     transform.transform.rotation.w = orientation.w();
-    realtime_odometry_transform_publisher_->tryPublish(odometry_transform_message_);
+    realtime_odometry_transform_publisher_->try_publish(odometry_transform_message_);
   }
   previous_publish_timestamp_ = time;
   return controller_interface::return_type::OK;
@@ -485,6 +491,9 @@ controller_interface::return_type SwerveController::update_and_write_commands(
 CallbackReturn SwerveController::on_deactivate(const rclcpp_lifecycle::State &)
 {
   subscriber_is_active_ = false;
+  halt();
+  wheel_handles_.clear();
+  axle_handles_.clear();
   return CallbackReturn::SUCCESS;
 }
 
