@@ -553,8 +553,7 @@ void SwerveController::halt()
 
 bool SwerveController::on_set_chained_mode(bool /*chained_mode*/) { return true; }
 
-std::vector<hardware_interface::CommandInterface>
-SwerveController::on_export_reference_interfaces()
+std::vector<hardware_interface::CommandInterface> SwerveController::on_export_reference_interfaces()
 {
   reference_interfaces_.resize(3, std::numeric_limits<double>::quiet_NaN());
 
