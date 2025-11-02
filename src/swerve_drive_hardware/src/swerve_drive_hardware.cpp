@@ -13,13 +13,15 @@ namespace swerve_drive_hardware
 {
 
 hardware_interface::CallbackReturn SwerveDriveHardware::on_init(
-  const hardware_interface::HardwareInfo & info)
+  const hardware_interface::HardwareComponentInterfaceParams & params)
 {
-  if (hardware_interface::SystemInterface::on_init(info) !=
+  if (hardware_interface::SystemInterface::on_init(params) !=
     hardware_interface::CallbackReturn::SUCCESS)
   {
     return hardware_interface::CallbackReturn::ERROR;
   }
+
+  const auto & info = params.hardware_info;
 
   logger_ = std::make_shared<rclcpp::Logger>(
     rclcpp::get_logger(
@@ -33,7 +35,7 @@ hardware_interface::CallbackReturn SwerveDriveHardware::on_init(
   std::size_t velocity_joints = 0;
   std::size_t position_joints = 0;
 
-  for(const hardware_interface::ComponentInfo & joint : info_.joints) {
+  for(const hardware_interface::ComponentInfo & joint : info.joints) {
     if(joint.command_interfaces[0].name == hardware_interface::HW_IF_VELOCITY) {
       velocity_joints++;
     } else {
@@ -42,13 +44,13 @@ hardware_interface::CallbackReturn SwerveDriveHardware::on_init(
   }
 
 
-  command_velocities_.resize(info_.joints.size() / 2, std::numeric_limits<double>::quiet_NaN());
-  command_steering_angles_.resize(info_.joints.size() / 2,
+  command_velocities_.resize(info.joints.size() / 2, std::numeric_limits<double>::quiet_NaN());
+  command_steering_angles_.resize(info.joints.size() / 2,
       std::numeric_limits<double>::quiet_NaN());
-  state_positions_.resize(info_.joints.size(), std::numeric_limits<double>::quiet_NaN());
-  state_velocities_.resize(info_.joints.size(), std::numeric_limits<double>::quiet_NaN());
+  state_positions_.resize(info.joints.size(), std::numeric_limits<double>::quiet_NaN());
+  state_velocities_.resize(info.joints.size(), std::numeric_limits<double>::quiet_NaN());
 
-  for(const hardware_interface::ComponentInfo & joint : info_.joints) {
+  for(const hardware_interface::ComponentInfo & joint : info.joints) {
 
     joint_names_.push_back(joint.name);
     if(joint.command_interfaces.size() != 1) {
