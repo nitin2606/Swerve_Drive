@@ -8,6 +8,7 @@
 #include <memory>
 #include <vector>
 
+// This is hardware interface
 namespace swerve_drive_hardware
 {
 
